@@ -140,32 +140,62 @@ async function pdfTextLines(blob){
 }
 async function analyzeEstimatePdf(blob){
   const pages=await pdfTextLines(blob);
-  const labels=[
-    {re:/итоговая\s+сумма/i,score:140,label:'Итоговая сумма'},
-    {re:/всего\s+к\s+оплате/i,score:135,label:'Всего к оплате'},
-    {re:/итого\s+к\s+оплате/i,score:132,label:'Итого к оплате'},
-    {re:/к\s+оплате/i,score:128,label:'К оплате'},
-    {re:/итого\s+по\s+смете/i,score:125,label:'Итого по смете'},
-    {re:/всего/i,score:100,label:'Всего'},
-    {re:/итого/i,score:90,label:'Итого'}
+  const allLines=[];
+  pages.forEach((lines,pageIndex)=>lines.forEach((line,lineIndex)=>allLines.push({line,pageIndex,lineIndex,linesOnPage:lines.length})));
+  if(!allLines.length)return null;
+
+  const skipRe=/(?:итого|всего).*(?:добавленн|дополнительн|по\s+разделу|раздела|по\s+этапу|этапа|по\s+позици|позици|по\s+группе|группы)/i;
+  const strongLabels=[
+    {re:/итоговая\s+сумма/i,label:'Итоговая сумма',priority:1000},
+    {re:/общая\s+(?:стоимость|сумма)/i,label:'Общая сумма',priority:980},
+    {re:/итого\s+по\s+смете/i,label:'Итого по смете',priority:970},
+    {re:/всего\s+по\s+смете/i,label:'Всего по смете',priority:965},
+    {re:/всего\s+к\s+оплате/i,label:'Всего к оплате',priority:960},
+    {re:/итого\s+к\s+оплате/i,label:'Итого к оплате',priority:955},
+    {re:/к\s+оплате/i,label:'К оплате',priority:940}
+  ];
+  const genericLabels=[
+    {re:/^\s*итого\b/i,label:'Итого'},
+    {re:/^\s*всего\b/i,label:'Всего'}
   ];
   const candidates=[];
-  pages.forEach((lines,pageIndex)=>lines.forEach((line,lineIndex)=>{
-    for(const label of labels){
-      const m=line.match(label.re); if(!m)continue;
-      const after=line.slice((m.index||0)+m[0].length);
-      let values=moneyValues(after),fromNext=false;
-      if(!values.length&&lines[lineIndex+1]){values=moneyValues(lines[lineIndex+1]);fromNext=true}
-      if(values.length){
-        const amount=Math.max(...values);
-        if(amount>=1)candidates.push({amount,label:label.label,score:label.score+pageIndex*4+lineIndex/Math.max(lines.length,1)-(fromNext?1:0)});
-      }
-      break;
+  const lastPage=pages.length-1;
+
+  function addCandidate(entry,label,priority,isStrong){
+    if(skipRe.test(entry.line))return;
+    const m=entry.line.match(label.re); if(!m)return;
+    const after=entry.line.slice((m.index||0)+m[0].length);
+    let values=moneyValues(after),source='same';
+    if(!values.length){
+      const next=pages[entry.pageIndex]?.[entry.lineIndex+1];
+      if(next){values=moneyValues(next);source='next'}
     }
-  }));
+    if(!values.length)return;
+    const amount=values[values.length-1];
+    if(!(amount>=1))return;
+    const globalIndex=allLines.indexOf(entry);
+    const endRatio=globalIndex/Math.max(1,allLines.length-1);
+    const pageEndRatio=entry.lineIndex/Math.max(1,entry.linesOnPage-1);
+    const finalZone=entry.pageIndex===lastPage&&pageEndRatio>=0.55;
+    if(!isStrong&&!finalZone)return;
+    candidates.push({
+      amount,label:label.label,
+      score:priority+(entry.pageIndex===lastPage?220:0)+(endRatio*120)+(pageEndRatio*40)-(source==='next'?2:0),
+      globalIndex,
+      isStrong
+    });
+  }
+
+  for(const entry of allLines){
+    for(const label of strongLabels)addCandidate(entry,label,label.priority,true);
+    for(const label of genericLabels)addCandidate(entry,label,500,false);
+  }
   if(!candidates.length)return null;
-  candidates.sort((a,b)=>b.score-a.score);
-  return candidates[0];
+
+  const strong=candidates.filter(c=>c.isStrong);
+  const pool=strong.length?strong:candidates;
+  pool.sort((a,b)=>b.score-a.score||b.globalIndex-a.globalIndex);
+  return pool[0];
 }
 async function analyzePdfMeta(meta,blob){
   meta.analysisStatus='processing';
