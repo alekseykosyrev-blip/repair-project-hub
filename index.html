@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Мои ремонтные проекты</title>
+  <style>
+    :root{
+      --bg:#f5f6f8; --panel:#ffffff; --text:#17191c; --muted:#6b7280;
+      --line:#e5e7eb; --accent:#2563eb; --accent2:#dbeafe; --ok:#16a34a;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    button,input,textarea,select{font:inherit}
+    .app{display:grid;grid-template-columns:290px minmax(0,1fr);min-height:100vh}
+    .sidebar{background:#111827;color:#fff;padding:18px;display:flex;flex-direction:column;gap:14px}
+    .sidebar h1{font-size:18px;margin:0}
+    .sidebar .sub{font-size:13px;color:#9ca3af}
+    .add{border:0;background:#fff;color:#111827;padding:11px 13px;border-radius:12px;font-weight:700;cursor:pointer}
+    .projects{display:flex;flex-direction:column;gap:8px;overflow:auto}
+    .project{border:1px solid #374151;background:#1f2937;border-radius:14px;padding:12px;cursor:pointer}
+    .project.active{border-color:#60a5fa;background:#172554}
+    .project .name{font-weight:700}
+    .project .meta{font-size:12px;color:#cbd5e1;margin-top:4px}
+    .main{padding:22px;min-width:0}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 3px 14px rgba(0,0,0,.04)}
+    .top{display:flex;gap:14px;align-items:flex-start;justify-content:space-between}
+    .titleinput{font-size:28px;font-weight:800;border:0;background:transparent;width:100%;padding:0}
+    .muted{color:var(--muted)}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+    .stat{background:#f9fafb;border:1px solid var(--line);border-radius:14px;padding:12px}
+    .stat label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}
+    .stat input,.stat select{width:100%;border:0;background:transparent;font-weight:700}
+    .progress{height:9px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:14px}
+    .progress > div{height:100%;background:var(--ok);width:0}
+    .section-title{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .section-title h2{font-size:17px;margin:0}
+    .btn{border:1px solid var(--line);background:#fff;padding:9px 12px;border-radius:11px;cursor:pointer}
+    .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .task{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:11px;margin-top:9px;background:#fff}
+    .task .grow{flex:1}
+    .task .stage{font-size:12px;color:var(--muted);margin-top:2px}
+    textarea{width:100%;min-height:180px;border:1px solid var(--line);border-radius:12px;padding:12px;resize:vertical}
+    .drop{border:2px dashed #cbd5e1;border-radius:14px;padding:20px;text-align:center;color:var(--muted);margin-top:12px}
+    .file{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:8px}
+    .file .grow{flex:1;min-width:0}
+    .file .fname{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .small{font-size:12px;color:var(--muted)}
+    .empty{color:var(--muted);font-size:14px;padding:10px 0}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;padding:16px}
+    .modal.show{display:flex}
+    .modalbox{width:min(560px,100%);background:#fff;border-radius:18px;padding:18px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .field{width:100%;border:1px solid var(--line);border-radius:11px;padding:10px}
+    .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+    @media (max-width:850px){
+      .app{grid-template-columns:1fr}
+      .sidebar{min-height:auto}
+      .projects{flex-direction:row}
+      .project{min-width:220px}
+      .grid,.stats{grid-template-columns:1fr}
+      .main{padding:14px}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div>
+      <h1>Мои проекты</h1>
+      <div class="sub">Ремонты, сметы и документы</div>
+    </div>
+    <button class="add" id="newProjectBtn">+ Новый объект</button>
+    <div class="projects" id="projects"></div>
+  </aside>
+
+  <main class="main">
+    <section class="panel">
+      <div class="top">
+        <div style="flex:1;min-width:0">
+          <input id="name" class="titleinput" />
+          <input id="client" class="field" style="margin-top:8px" placeholder="Заказчик" />
+        </div>
+        <div style="text-align:right">
+          <div class="small">Готовность</div>
+          <div id="progressText" style="font-size:24px;font-weight:800">0%</div>
+        </div>
+      </div>
+      <div class="progress"><div id="progressBar"></div></div>
+      <div class="stats">
+        <div class="stat"><label>Статус</label>
+          <select id="status"><option>В работе</option><option>Ожидает согласования</option><option>Пауза</option><option>Завершён</option></select>
+        </div>
+        <div class="stat"><label>Бюджет</label><input id="budget" placeholder="0 ₽"></div>
+        <div class="stat"><label>Срок</label><input id="deadline" placeholder="—"></div>
+      </div>
+    </section>
+
+    <div class="grid" style="margin-top:16px">
+      <section class="panel">
+        <div class="section-title">
+          <div><h2>Этапы и задачи</h2><div class="small">Работы по объекту</div></div>
+          <button class="btn" id="addTaskBtn">+ Задача</button>
+        </div>
+        <div id="tasks"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-title"><div><h2>Заметки</h2><div class="small">Договорённости и важные детали</div></div></div>
+        <textarea id="notes" placeholder="Например: согласовать цвет, проверить объём, запросить доплату..."></textarea>
+      </section>
+    </div>
+
+    <section class="panel" style="margin-top:16px">
+      <div class="section-title">
+        <div><h2>Документы</h2><div class="small">PDF, Excel, сметы, акты и рабочие файлы</div></div>
+        <label class="btn primary">Загрузить файлы<input id="fileInput" type="file" multiple hidden></label>
+      </div>
+      <div id="drop" class="drop">Перетащи сюда PDF, Excel или другие документы</div>
+      <div id="files"></div>
+    </section>
+  </main>
+</div>
+
+<div class="modal" id="projectModal">
+  <div class="modalbox">
+    <h3 style="margin-top:0">Новый объект</h3>
+    <div class="row">
+      <input class="field" id="newName" placeholder="Название объекта">
+      <input class="field" id="newClient" placeholder="Заказчик">
+    </div>
+    <div class="actions">
+      <button class="btn" id="cancelProject">Отмена</button>
+      <button class="btn primary" id="createProject">Создать</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="taskModal">
+  <div class="modalbox">
+    <h3 style="margin-top:0">Новая задача</h3>
+    <div class="row">
+      <input class="field" id="taskText" placeholder="Название задачи">
+      <input class="field" id="taskStage" placeholder="Этап, например Малярка">
+    </div>
+    <div class="actions">
+      <button class="btn" id="cancelTask">Отмена</button>
+      <button class="btn primary" id="createTask">Добавить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY='repairHubProjects_v1';
+let state = JSON.parse(localStorage.getItem(KEY) || 'null') || {
+  active:1, nextProject:3, nextTask:10,
+  projects:[
+    {id:1,name:'Коттедж — отделочные работы',client:'Равиль',status:'В работе',budget:'1 850 000 ₽',deadline:'15 декабря',notes:'Проверить фактические объёмы перед следующим этапом.',tasks:[
+      {id:1,text:'Подготовка стен',stage:'Малярные работы',done:true},
+      {id:2,text:'Финишная шпаклёвка',stage:'Малярные работы',done:false},
+      {id:3,text:'Окраска фасада',stage:'Фасад',done:false}
+    ],files:[]},
+    {id:2,name:'Квартира — ремонт',client:'Антон',status:'Ожидает согласования',budget:'640 000 ₽',deadline:'30 ноября',notes:'',tasks:[
+      {id:4,text:'Согласовать смету',stage:'Документы',done:true},
+      {id:5,text:'Заказать материалы',stage:'Закупка',done:false}
+    ],files:[]}
+  ]
+};
+
+const $=s=>document.querySelector(s);
+function save(){ localStorage.setItem(KEY,JSON.stringify(state)); }
+function active(){ return state.projects.find(p=>p.id===state.active) || state.projects[0]; }
+function progress(p){ return p.tasks.length ? Math.round(p.tasks.filter(t=>t.done).length/p.tasks.length*100) : 0; }
+
+function renderProjects(){
+  const box=$('#projects'); box.innerHTML='';
+  state.projects.forEach(p=>{
+    const el=document.createElement('div'); el.className='project'+(p.id===state.active?' active':'');
+    el.innerHTML=`<div class="name">${escapeHtml(p.name)}</div><div class="meta">${escapeHtml(p.status)} · ${progress(p)}%</div>`;
+    el.onclick=()=>{sync();state.active=p.id;save();render();};
+    box.appendChild(el);
+  });
+}
+function renderTasks(){
+  const p=active(), box=$('#tasks'); box.innerHTML='';
+  if(!p.tasks.length){box.innerHTML='<div class="empty">Пока задач нет.</div>';return}
+  p.tasks.forEach(t=>{
+    const el=document.createElement('div'); el.className='task';
+    el.innerHTML=`<input type="checkbox" ${t.done?'checked':''}><div class="grow"><div style="${t.done?'text-decoration:line-through;color:#6b7280':''}">${escapeHtml(t.text)}</div><div class="stage">${escapeHtml(t.stage)}</div></div><button class="btn">Удалить</button>`;
+    el.querySelector('input').onchange=e=>{t.done=e.target.checked;save();render();}
+    el.querySelector('button').onclick=()=>{p.tasks=p.tasks.filter(x=>x.id!==t.id);save();render();}
+    box.appendChild(el);
+  });
+}
+function renderFiles(){
+  const p=active(), box=$('#files'); box.innerHTML='';
+  if(!p.files.length){box.innerHTML='<div class="empty">Документы ещё не добавлены.</div>';return}
+  p.files.forEach((f,i)=>{
+    const el=document.createElement('div'); el.className='file';
+    el.innerHTML=`<div class="grow"><div class="fname">${escapeHtml(f.name)}</div><div class="small">${escapeHtml(f.type||'Файл')} · сохранено имя файла</div></div><button class="btn">Удалить</button>`;
+    el.querySelector('button').onclick=()=>{p.files.splice(i,1);save();renderFiles();}
+    box.appendChild(el);
+  });
+}
+function render(){
+  const p=active();
+  $('#name').value=p.name; $('#client').value=p.client; $('#status').value=p.status; $('#budget').value=p.budget; $('#deadline').value=p.deadline; $('#notes').value=p.notes;
+  const pr=progress(p); $('#progressText').textContent=pr+'%'; $('#progressBar').style.width=pr+'%';
+  renderProjects(); renderTasks(); renderFiles();
+}
+function sync(){
+  const p=active(); if(!p)return;
+  p.name=$('#name').value.trim()||'Без названия';
+  p.client=$('#client').value.trim();
+  p.status=$('#status').value;
+  p.budget=$('#budget').value.trim();
+  p.deadline=$('#deadline').value.trim();
+  p.notes=$('#notes').value;
+  save();
+}
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+
+['#name','#client','#status','#budget','#deadline','#notes'].forEach(sel=>$(sel).addEventListener('change',()=>{sync();renderProjects()}));
+
+$('#newProjectBtn').onclick=()=>$('#projectModal').classList.add('show');
+$('#cancelProject').onclick=()=>$('#projectModal').classList.remove('show');
+$('#createProject').onclick=()=>{
+  const name=$('#newName').value.trim(); if(!name)return;
+  sync();
+  const p={id:state.nextProject++,name,client:$('#newClient').value.trim(),status:'В работе',budget:'0 ₽',deadline:'—',notes:'',tasks:[],files:[]};
+  state.projects.push(p); state.active=p.id; $('#newName').value=''; $('#newClient').value=''; $('#projectModal').classList.remove('show'); save(); render();
+};
+
+$('#addTaskBtn').onclick=()=>$('#taskModal').classList.add('show');
+$('#cancelTask').onclick=()=>$('#taskModal').classList.remove('show');
+$('#createTask').onclick=()=>{
+  const text=$('#taskText').value.trim(); if(!text)return;
+  active().tasks.push({id:state.nextTask++,text,stage:$('#taskStage').value.trim()||'Общие работы',done:false});
+  $('#taskText').value='';$('#taskStage').value='';$('#taskModal').classList.remove('show');save();render();
+};
+
+function addFiles(files){
+  const p=active();
+  [...files].forEach(f=>p.files.push({name:f.name,type:f.type,size:f.size}));
+  save();renderFiles();
+}
+$('#fileInput').onchange=e=>{addFiles(e.target.files);e.target.value='';}
+const drop=$('#drop');
+['dragenter','dragover'].forEach(n=>drop.addEventListener(n,e=>{e.preventDefault();drop.style.borderColor='#2563eb'}));
+['dragleave','drop'].forEach(n=>drop.addEventListener(n,e=>{e.preventDefault();drop.style.borderColor='#cbd5e1'}));
+drop.addEventListener('drop',e=>addFiles(e.dataTransfer.files));
+
+render();
+</script>
+</body>
+</html>
