@@ -101,15 +101,15 @@ async function analyzeExistingPdfBudgets(){
   for(const p of state.projects){
     for(const meta of p.files||[]){
       if(!meta.stored||!meta.id||!isPdf(meta))continue;
-      if(meta.analysisVersion===ESTIMATE_PARSER_VERSION&&meta.analysisStatus)continue;
+      if(meta.analysisVersion===ESTIMATE_PARSER_V3&&meta.analysisStatus)continue;
       meta.analysisStatus='processing'; changed=true;
       if(p.id===state.active)renderFiles();
       try{
         const r=await dbGet(meta.id),blob=ensureBlob(r,meta);
-        if(!blob){meta.stored=false;meta.analysisStatus='error';meta.analysisVersion=ESTIMATE_PARSER_VERSION;continue}
+        if(!blob){meta.stored=false;meta.analysisStatus='error';meta.analysisVersion=ESTIMATE_PARSER_V3;continue}
         const ok=await analyzePdfMeta(meta,blob);
         if(ok)p.budgetFromEstimates=true;
-      }catch(e){console.error(e);meta.analysisStatus='error';meta.analysisVersion=ESTIMATE_PARSER_VERSION}
+      }catch(e){console.error(e);meta.analysisStatus='error';meta.analysisVersion=ESTIMATE_PARSER_V3}
     }
     recalcBudget(p);
   }
