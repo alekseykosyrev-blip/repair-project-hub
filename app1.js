@@ -1,6 +1,7 @@
 const KEY='repairHubProjects_v1';
 const DB_NAME='repairProjectHubFiles_v1';
 const DB_STORE='files';
+const ESTIMATE_PARSER_VERSION=2;
 
 const defaultState={
   active:1,nextProject:3,nextTask:10,
@@ -199,6 +200,7 @@ async function analyzeEstimatePdf(blob){
 }
 async function analyzePdfMeta(meta,blob){
   meta.analysisStatus='processing';
+  meta.analysisVersion=ESTIMATE_PARSER_VERSION;
   try{
     const result=await analyzeEstimatePdf(blob);
     if(result){
