@@ -6,7 +6,8 @@ button,input,textarea,select{font:inherit}
 button,label{touch-action:manipulation}
 button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,.project:focus-visible,.drop:focus-visible{outline:3px solid rgba(37,99,235,.22);outline-offset:2px}
 .app{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:100vh}
-.sidebar{background:var(--sidebar);color:#fff;padding:20px;display:flex;flex-direction:column;gap:16px;position:sticky;top:0;height:100vh;overflow:hidden}
+.sidebar{background:var(--sidebar);color:#fff;padding:20px;display:flex;flex-direction:column;gap:16px;position:sticky;top:0;height:100vh;height:100dvh;overflow-x:hidden;overflow-y:auto;scrollbar-gutter:stable}
+.sidebar>*{flex-shrink:0}
 .brand h1{font-size:19px;line-height:1.2;margin:0;font-weight:800}
 .brand .sub{font-size:13px;color:#9ca3af;margin-top:5px}
 .add{border:0;background:#fff;color:#111827;padding:12px 14px;border-radius:13px;font-weight:800;cursor:pointer;min-height:46px}
@@ -78,3 +79,4 @@ textarea{width:100%;min-height:190px;border:1px solid var(--line);border-radius:
 .toast.error{background:#7f1d1d}
 @media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{position:relative;height:auto;padding:14px;gap:12px}.brand{display:flex;align-items:baseline;justify-content:space-between;gap:10px}.brand .sub{margin:0;text-align:right}.projects{flex-direction:row;overflow-x:auto;padding-bottom:2px}.project{min-width:220px;max-width:260px}.main{padding:14px}.grid,.stats{grid-template-columns:1fr}.panel{border-radius:16px;padding:15px}}
 @media(max-width:600px){.brand{display:block}.brand .sub{text-align:left;margin-top:4px}.top{gap:10px}.titleinput{font-size:24px}.progress-box{min-width:70px}.progress-number{font-size:22px}.documents-panel .section-title{flex-direction:column;align-items:flex-start}.doc-head-actions,.documents-panel .btn.primary{width:100%}.row{grid-template-columns:1fr}.task{align-items:center}.task .btn{padding:7px 9px;min-height:34px;font-size:12px}.file{align-items:flex-start;flex-wrap:wrap}.file .grow{min-width:calc(100% - 50px)}.file-actions{width:100%}.file-actions .btn{flex:1}.bottom-actions .btn,.add{width:100%}}
+

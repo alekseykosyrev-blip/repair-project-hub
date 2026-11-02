@@ -1,4 +1,4 @@
-const SITE_BUILD='2026.11.02.4';
+const SITE_BUILD='2026.11.02.5';
 
 function formatReleaseTime(value){
   if(!value)return '—';
@@ -50,7 +50,8 @@ async function checkPublishedVersion(){
     if(time)time.textContent=formatReleaseTime(data.publishedAt);
     if(changes){
       const list=Array.isArray(data.changes)?data.changes:[];
-      changes.innerHTML=list.length?list.map(x=>'<li>'+esc(x)+'</li>').join(''):'<li>Нет описания изменений.</li>';
+      const html=list.length?list.map(x=>'<li>'+esc(x)+'</li>').join(''):'<li>Нет описания изменений.</li>';
+      if(changes.innerHTML!==html)changes.innerHTML=html;
     }
     if(status)status.textContent=data.status==='published'?'Опубликовано':'Обновляется';
     if(update)update.classList.toggle('show',Boolean(data.build&&data.build!==SITE_BUILD));
@@ -84,3 +85,4 @@ if(!document.querySelector('script[data-ops-script]')){
   s.dataset.opsScript='1';
   document.body.appendChild(s);
 }
+
