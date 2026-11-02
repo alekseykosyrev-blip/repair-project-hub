@@ -13,7 +13,6 @@ function worklogAuthor(message){
   return {id:'team',label:'Автор не указан'};
 }
 
-
 function worklogTime(value){
   if(!value)return '—';
   const d=new Date(value);
@@ -27,14 +26,14 @@ function ensureWorklogUi(){
   if(document.getElementById('worklogLauncher'))return;
   const style=document.createElement('style');
   style.textContent=`
-    .worklog-launcher{position:fixed;right:18px;bottom:18px;z-index:950;display:flex;align-items:center;gap:9px;border:0;border-radius:999px;padding:11px 14px;background:#111827;color:#fff;font-weight:800;box-shadow:0 10px 30px rgba(15,23,42,.28);cursor:pointer;min-height:46px}
+    .worklog-launcher{position:fixed;right:18px;bottom:168px;z-index:950;display:flex;align-items:center;gap:9px;border:0;border-radius:999px;padding:11px 14px;background:#111827;color:#fff;font-weight:800;box-shadow:0 10px 30px rgba(15,23,42,.28);cursor:pointer;min-height:46px}
     .worklog-launcher-dot{width:10px;height:10px;border-radius:50%;background:#94a3b8}.worklog-launcher-dot.working,.worklog-launcher-dot.checking{background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.16);animation:worklogPulse 1.6s infinite}.worklog-launcher-dot.published{background:#3b82f6}.worklog-launcher-dot.error{background:#ef4444}.worklog-badge{display:none;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#ef4444;color:#fff;font-size:11px;align-items:center;justify-content:center}.worklog-badge.show{display:inline-flex}
     @keyframes worklogPulse{0%,100%{opacity:1}50%{opacity:.45}}
-    .worklog-panel{position:fixed;right:18px;bottom:76px;z-index:951;width:min(390px,calc(100vw - 24px));max-height:min(620px,calc(100vh - 105px));display:none;flex-direction:column;background:#fff;border:1px solid #e5e7eb;border-radius:18px;box-shadow:0 22px 60px rgba(15,23,42,.25);overflow:hidden;color:#111827}.worklog-panel.open{display:flex}
+    .worklog-panel{position:fixed;right:18px;bottom:226px;z-index:951;width:min(390px,calc(100vw - 24px));max-height:min(620px,calc(100vh - 255px));display:none;flex-direction:column;background:#fff;border:1px solid #e5e7eb;border-radius:18px;box-shadow:0 22px 60px rgba(15,23,42,.25);overflow:hidden;color:#111827}.worklog-panel.open{display:flex}
     .worklog-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 16px;border-bottom:1px solid #eef2f7}.worklog-title{font-size:16px;font-weight:900}.worklog-sub{font-size:11px;color:#64748b;margin-top:2px}.worklog-close{border:0;background:#f1f5f9;width:36px;height:36px;border-radius:10px;font-size:20px;cursor:pointer}
     .worklog-now{padding:14px 16px;background:#f8fafc;border-bottom:1px solid #eef2f7}.worklog-state{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:900;margin-bottom:7px}.worklog-state-dot{width:9px;height:9px;border-radius:50%;background:#94a3b8}.worklog-state-dot.working,.worklog-state-dot.checking{background:#22c55e}.worklog-state-dot.published{background:#3b82f6}.worklog-state-dot.error{background:#ef4444}.worklog-current{font-size:13px;line-height:1.45}.worklog-next{font-size:12px;color:#64748b;line-height:1.4;margin-top:7px}
     .worklog-head,.worklog-now,.worklog-foot,.worklog-filters{flex-shrink:0}.worklog-list{padding:12px 14px 14px;overflow:auto;min-height:0;flex:1 1 auto;overscroll-behavior:contain;overflow-wrap:anywhere}.worklog-filters{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid #eef2f7}.worklog-filter{border:1px solid #cbd5e1;border-radius:9px;padding:8px 10px;background:#fff;color:#334155;cursor:pointer;font-size:12px;min-height:36px}.worklog-filter[aria-pressed="true"]{background:#1e40af;color:#fff;border-color:#1e40af}.worklog-author{font-size:11px;font-weight:800;color:#334155}.worklog-author.astra{color:#6d28d9}.worklog-author.chatgpt{color:#047857}.worklog-msg-top{flex-wrap:wrap}.worklog-panel{overflow:auto}.worklog-msg{padding:11px 12px;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:9px}.worklog-msg:last-child{margin-bottom:0}.worklog-msg-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}.worklog-msg-type{font-size:11px;font-weight:900}.worklog-msg-time{font-size:10px;color:#94a3b8}.worklog-msg-text{font-size:12px;line-height:1.45}.worklog-foot{padding:10px 14px;border-top:1px solid #eef2f7;font-size:10px;color:#94a3b8;background:#fff}
-    @media(max-width:800px){.worklog-launcher{right:12px;bottom:12px;padding:10px 12px}.worklog-panel{right:12px;bottom:70px;width:calc(100vw - 24px);max-height:calc(100vh - 92px)}}
+    @media(max-width:800px){.worklog-launcher{right:12px;bottom:176px;padding:10px 12px}.worklog-panel{right:12px;bottom:232px;width:calc(100vw - 24px);max-height:calc(100vh - 252px)}}
     @media(prefers-reduced-motion:reduce){.worklog-launcher-dot{animation:none!important}}
   `;
   document.head.appendChild(style);
@@ -132,4 +131,3 @@ async function refreshWorklog(){
 ensureWorklogUi();
 refreshWorklog();
 setInterval(refreshWorklog,15000);
-
