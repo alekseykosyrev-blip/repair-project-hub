@@ -1,4 +1,4 @@
-const CACHE_NAME='repair-project-hub-v1';
+const CACHE_NAME='repair-project-hub-v2';
 const APP_SHELL=[
   './',
   './index.html',
@@ -8,7 +8,7 @@ const APP_SHELL=[
   './finance-center-v2.css',
   './manifest.webmanifest',
   './icon.svg',
-  './app1.js','./app2.js','./app3.js','./app4.js','./app5.js','./app6.js','./app7.js','./app8.js','./app9.js','./app10.js','./app11.js','./app12.js','./app13.js','./app17.js','./app18.js','./app19.js'
+  './app1.js','./app2.js','./app3.js','./app4.js','./app5.js','./app6.js','./app7.js','./app8.js','./app9.js','./app10.js','./app11.js','./app12.js','./app13.js','./app17.js','./app18.js','./app19.js','./app20.js','./app21.js'
 ];
 
 self.addEventListener('install',event=>{
