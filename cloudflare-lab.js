@@ -6,7 +6,7 @@
     if(!brand||document.querySelector('.cf-lab-badge'))return;
     const badge=document.createElement('div');
     badge.className='cf-lab-badge';
-    badge.innerHTML='<i></i><span>Cloudflare Lab · отдельная версия</span>';
+    badge.innerHTML='<i></i><span>Платформа: Cloudflare</span>';
     brand.appendChild(badge);
   }
   function openBackup(){
