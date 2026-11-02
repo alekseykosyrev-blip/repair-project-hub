@@ -16,6 +16,7 @@ assert.match(app11,/syncCompletedFromPercent/);
 assert.match(app11,/syncPercentFromCompleted/);
 assert.match(app18,/estimateCompletionPercent=100/);
 assert.match(app18,/estimateCompletedAmount=total/);
+assert.match(app18,/Осталось получить по проекту/);
 assert.match(app17,/Согласованные допработы/);
 assert.match(app17,/Фактические расходы/);
 assert.match(app17,/Расчётная прибыль/);
