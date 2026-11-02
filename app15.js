@@ -59,6 +59,20 @@ function backupProgress(text){
   if(status)status.textContent=text;
 }
 
+function projectWord(n){
+  const mod10=n%10,mod100=n%100;
+  if(mod10===1&&mod100!==11)return 'объект';
+  if(mod10>=2&&mod10<=4&&(mod100<12||mod100>14))return 'объекта';
+  return 'объектов';
+}
+
+function fileWord(n){
+  const mod10=n%10,mod100=n%100;
+  if(mod10===1&&mod100!==11)return 'файл';
+  if(mod10>=2&&mod10<=4&&(mod100<12||mod100>14))return 'файла';
+  return 'файлов';
+}
+
 function updateBackupSummary(){
   const last=document.getElementById('backupLast');
   if(last)last.textContent=backupDate(localStorage.getItem(BACKUP_LAST_KEY));
@@ -68,7 +82,7 @@ function updateBackupSummary(){
   if(summary){
     const projects=Array.isArray(state?.projects)?state.projects.length:0;
     const files=(state?.projects||[]).reduce((n,p)=>n+(p.files||[]).filter(f=>f.stored&&f.id).length,0);
-    summary.textContent=`Сейчас: ${projects} объект${projects===1?'':projects<5?'а':'ов'} · локальных файлов: ${files}`;
+    summary.textContent=`Сейчас: ${projects} ${projectWord(projects)} · локальных файлов: ${files}`;
   }
 }
 
@@ -172,7 +186,8 @@ async function createFullBackup(){
     downloadBackupBlob(out,backupFileName());
     localStorage.setItem(BACKUP_LAST_KEY,manifest.createdAt);
     updateBackupSummary();
-    backupProgress(warnings.length?`Копия создана. Важно: ${warnings.length} локальн. файл(а) не удалось включить, потому что браузер их уже не нашёл.`:`Копия создана: ${(snapshot.projects||[]).length} объект(а), ${manifestFiles.length} файл(а), ${bytes(totalBytes)}.`);
+    const projects=(snapshot.projects||[]).length;
+    backupProgress(warnings.length?`Копия создана. Важно: ${warnings.length} ${fileWord(warnings.length)} не удалось включить, потому что браузер их уже не нашёл.`:`Копия создана: ${projects} ${projectWord(projects)}, ${manifestFiles.length} ${fileWord(manifestFiles.length)}, ${bytes(totalBytes)}.`);
     toast(warnings.length?'Резервная копия создана с предупреждением.':'Резервная копия создана и передана в загрузки.',warnings.length>0);
   }catch(e){
     console.error('Backup failed',e);
@@ -182,13 +197,25 @@ async function createFullBackup(){
 }
 
 function validBackupManifest(manifest){
-  return manifest&&manifest.format===BACKUP_FORMAT&&Number(manifest.formatVersion)===BACKUP_VERSION&&manifest.state&&Array.isArray(manifest.state.projects)&&Array.isArray(manifest.files);
+  if(!manifest||manifest.format!==BACKUP_FORMAT||Number(manifest.formatVersion)!==BACKUP_VERSION)return false;
+  if(!manifest.state||!Array.isArray(manifest.state.projects)||!Array.isArray(manifest.files))return false;
+  if(manifest.state.projects.length>10000||manifest.files.length>5000)return false;
+  const ids=new Set(),paths=new Set();
+  for(const info of manifest.files){
+    if(!info||!info.id||typeof info.path!=='string'||!info.path.startsWith('files/'))return false;
+    const id=String(info.id);
+    if(ids.has(id)||paths.has(info.path))return false;
+    ids.add(id);paths.add(info.path);
+  }
+  return true;
 }
 
 async function restoreFullBackup(file){
   ensureBackupUi();
   setBackupBusy(true,'Проверяю выбранную резервную копию…');
   const stagedIds=[];
+  const previousRollbackRaw=localStorage.getItem(BACKUP_ROLLBACK_KEY);
+  let committed=false;
   try{
     if(file.size>2147483648)throw new Error('BACKUP_TOO_LARGE');
     const JSZip=await loadBackupZipLib();
@@ -197,11 +224,10 @@ async function restoreFullBackup(file){
     if(!manifestEntry)throw new Error('MANIFEST_MISSING');
     const manifest=JSON.parse(await manifestEntry.async('string'));
     if(!validBackupManifest(manifest))throw new Error('INVALID_BACKUP');
-    if(manifest.files.length>5000)throw new Error('TOO_MANY_FILES');
     const projectCount=manifest.state.projects.length;
     const fileCount=manifest.files.length;
     const stamp=backupDate(manifest.createdAt);
-    setBackupBusy(false,`Копия от ${stamp}: ${projectCount} объект(а), ${fileCount} файл(а).`);
+    setBackupBusy(false,`Копия от ${stamp}: ${projectCount} ${projectWord(projectCount)}, ${fileCount} ${fileWord(fileCount)}.`);
     const ok=confirm(`Восстановить резервную копию от ${stamp}?\n\nТекущие данные в приложении будут заменены данными из копии. Перед заменой приложение сохранит возможность отменить это восстановление.`);
     if(!ok){backupProgress('Восстановление отменено. Текущие данные не изменены.');return}
     setBackupBusy(true,'Подготавливаю безопасное восстановление…');
@@ -214,7 +240,6 @@ async function restoreFullBackup(file){
     for(const info of manifest.files){
       done++;
       backupProgress(`Проверяю и восстанавливаю файлы: ${done} из ${fileCount}…`);
-      if(!info||!info.id||typeof info.path!=='string'||!info.path.startsWith('files/'))throw new Error('INVALID_FILE_ENTRY');
       const entry=zip.file(info.path);
       if(!entry)throw new Error('BACKUP_FILE_MISSING');
       const blob=await entry.async('blob');
@@ -240,16 +265,24 @@ async function restoreFullBackup(file){
     const rollback={createdAt:new Date().toISOString(),state:clone(state),importedIds:stagedIds};
     localStorage.setItem(BACKUP_ROLLBACK_KEY,JSON.stringify(rollback));
     localStorage.setItem(KEY,JSON.stringify(imported));
+    committed=true;
     state=loadState();
     save(false);
-    backupProgress(`Восстановлено: ${projectCount} объект(а), ${fileCount} файл(а). Перезагружаю приложение…`);
+    backupProgress(`Восстановлено: ${projectCount} ${projectWord(projectCount)}, ${fileCount} ${fileWord(fileCount)}. Перезагружаю приложение…`);
     toast('Резервная копия восстановлена.');
     setTimeout(()=>location.reload(),900);
   }catch(e){
     console.error('Restore failed',e);
-    for(const id of stagedIds){try{await dbDelete(id)}catch(err){console.warn('Staged cleanup failed',id,err)}}
-    backupProgress('Восстановление не выполнено. Текущие данные оставлены без изменений.');
-    toast('Не удалось восстановить копию. Текущие данные сохранены.',true);
+    if(!committed){
+      for(const id of stagedIds){try{await dbDelete(id)}catch(err){console.warn('Staged cleanup failed',id,err)}}
+      if(previousRollbackRaw===null)localStorage.removeItem(BACKUP_ROLLBACK_KEY);
+      else localStorage.setItem(BACKUP_ROLLBACK_KEY,previousRollbackRaw);
+      backupProgress('Восстановление не выполнено. Текущие данные оставлены без изменений.');
+      toast('Не удалось восстановить копию. Текущие данные сохранены.',true);
+    }else{
+      backupProgress('Данные восстановлены, но интерфейс не смог обновиться автоматически. Перезагрузите страницу.');
+      toast('Данные восстановлены. Обновите страницу.',true);
+    }
   }finally{setBackupBusy(false)}
 }
 
@@ -262,10 +295,10 @@ async function rollbackLastRestore(){
     const rollback=JSON.parse(raw);
     if(!rollback?.state||!Array.isArray(rollback.state.projects))throw new Error('INVALID_ROLLBACK');
     localStorage.setItem(KEY,JSON.stringify(rollback.state));
-    for(const id of rollback.importedIds||[]){try{await dbDelete(id)}catch(e){console.warn('Rollback cleanup failed',id,e)}}
-    localStorage.removeItem(BACKUP_ROLLBACK_KEY);
     state=loadState();
     save(false);
+    for(const id of rollback.importedIds||[]){try{await dbDelete(id)}catch(e){console.warn('Rollback cleanup failed',id,e)}}
+    localStorage.removeItem(BACKUP_ROLLBACK_KEY);
     toast('Последнее восстановление отменено.');
     setTimeout(()=>location.reload(),700);
   }catch(e){
