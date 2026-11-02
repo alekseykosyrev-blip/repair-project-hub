@@ -7,6 +7,7 @@
 <title>Мои ремонтные проекты</title>
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="dashboard.css">
+<link rel="stylesheet" href="finance.css">
 </head>
 <body>
 <div class="app">
@@ -28,7 +29,7 @@
   <div class="progress"><div id="progressBar"></div></div>
   <div class="stats">
     <div class="stat"><label for="status">Статус</label><select id="status"><option>В работе</option><option>Ожидает согласования</option><option>Пауза</option><option>Завершён</option></select></div>
-    <div class="stat"><label for="budget">Бюджет</label><input id="budget" placeholder="0 ₽"><div id="budgetSource" class="small budget-source">Ручной ввод</div></div>
+    <div class="stat"><label for="budget">Согласовано по сметам</label><input id="budget" placeholder="0 ₽" readonly><div id="budgetSource" class="small budget-source">Пока нет согласованных смет</div></div>
     <div class="stat"><label for="deadline">Срок</label><input id="deadline" placeholder="—"></div>
   </div>
 </section>
@@ -46,10 +47,10 @@
 
 <section class="panel documents-panel">
   <div class="section-title">
-    <div><h2>Документы</h2><div class="small">PDF, Excel, сметы, акты и рабочие файлы</div></div>
+    <div><h2>Документы</h2><div class="small">Договоры и рабочие файлы проекта</div></div>
     <div class="doc-head-actions"><label class="btn primary">Загрузить файлы<input id="fileInput" type="file" multiple hidden></label></div>
   </div>
-  <div class="storage-note">Документы сохраняются целиком в браузере на этом устройстве. Для PDF-смет сайт пытается найти итоговую сумму и просит подтвердить её перед добавлением в бюджет. Если итог не найден или распознан неверно, сумму можно ввести вручную. PDF и изображения можно открыть прямо из сайта, Excel и Word — скачать с исходным именем.</div>
+  <div class="storage-note">Документы сохраняются целиком в браузере на этом устройстве.</div>
   <div id="drop" class="drop" tabindex="0" role="button">Перетащи файлы сюда или нажми, чтобы выбрать</div>
   <div id="files"></div>
 </section>
@@ -79,5 +80,6 @@
 <script src="app3.js"></script>
 <script src="app5.js"></script>
 <script src="app6.js"></script>
+<script src="app7.js"></script>
 </body>
 </html>
