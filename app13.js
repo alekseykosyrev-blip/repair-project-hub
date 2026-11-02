@@ -1,4 +1,4 @@
-const SITE_BUILD='2026.11.02.2';
+const SITE_BUILD='2026.11.02.3';
 
 function formatReleaseTime(value){
   if(!value)return '—';
@@ -70,5 +70,11 @@ if(!document.querySelector('script[data-worklog-script]')){
   const s=document.createElement('script');
   s.src='app14.js?v='+encodeURIComponent(SITE_BUILD);
   s.dataset.worklogScript='1';
+  document.body.appendChild(s);
+}
+if(!document.querySelector('script[data-backup-script]')){
+  const s=document.createElement('script');
+  s.src='app15.js?v='+encodeURIComponent(SITE_BUILD);
+  s.dataset.backupScript='1';
   document.body.appendChild(s);
 }
