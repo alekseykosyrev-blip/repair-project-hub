@@ -1,4 +1,4 @@
-const CACHE_NAME='repair-project-hub-v4';
+const CACHE_NAME='repair-project-hub-v5';
 const APP_SHELL=[
   './',
   './index.html',
@@ -8,7 +8,7 @@ const APP_SHELL=[
   './finance-center-v2.css',
   './manifest.webmanifest',
   './icon.svg',
-  './app1.js','./app2.js','./app3.js','./app4.js','./app5.js','./app6.js','./app7.js','./app8.js','./app9.js','./app10.js','./app11.js','./app12.js','./app13.js','./app17.js','./app18.js','./app19.js','./app20.js','./app21.js'
+  './app1.js','./app2.js','./app3.js','./app4.js','./app5.js','./app6.js','./app7.js','./app8.js','./app9.js','./app10.js','./app11.js','./app12.js','./app13.js','./app14.js','./app15.js','./app16.js','./app17.js','./app18.js','./app19.js','./app20.js','./app21.js'
 ];
 
 self.addEventListener('install',event=>{
@@ -42,7 +42,7 @@ self.addEventListener('fetch',event=>{
         cache.put('./index.html',fresh.clone());
         return fresh;
       }catch{
-        return (await caches.match(req))||(await caches.match('./index.html'))||(await caches.match('./'));
+        return (await caches.match(req,{ignoreSearch:true}))||(await caches.match('./index.html'))||(await caches.match('./'));
       }
     })());
     return;
@@ -50,11 +50,12 @@ self.addEventListener('fetch',event=>{
 
   if(url.origin===self.location.origin){
     event.respondWith((async()=>{
-      const cached=await caches.match(req);
+      const cached=await caches.match(req,{ignoreSearch:true});
       const network=fetch(req).then(async fresh=>{
         if(fresh&&fresh.ok){
           const cache=await caches.open(CACHE_NAME);
-          cache.put(req,fresh.clone());
+          const normalized=new Request(url.origin+url.pathname,{method:'GET',headers:req.headers,mode:'same-origin',credentials:req.credentials,redirect:'follow'});
+          cache.put(normalized,fresh.clone());
         }
         return fresh;
       }).catch(()=>null);
