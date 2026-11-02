@@ -26,3 +26,5 @@ jobs:
         run: node tests/finance-smoke.mjs
       - name: Run offline smoke test
         run: node tests/offline-smoke.mjs
+      - name: Run helper smoke test
+        run: node tests/helper-smoke.mjs
