@@ -19,8 +19,10 @@ jobs:
         shell: bash
         run: |
           set -e
-          for f in app*.js; do
+          for f in app*.js sw.js; do
             node --check "$f"
           done
       - name: Run finance smoke test
         run: node tests/finance-smoke.mjs
+      - name: Run offline smoke test
+        run: node tests/offline-smoke.mjs
