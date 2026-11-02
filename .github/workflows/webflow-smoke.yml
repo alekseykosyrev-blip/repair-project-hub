@@ -1,0 +1,26 @@
+name: Webflow smoke test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -e
+          for f in app*.js; do
+            node --check "$f"
+          done
+      - name: Run finance smoke test
+        run: node tests/finance-smoke.mjs
