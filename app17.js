@@ -4,7 +4,7 @@
   const uid=p=>p+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7);
   const num=v=>typeof moneyNumber==='function'?moneyNumber(v):(Number(String(v||'').replace(/[^\d.,-]/g,'').replace(',','.'))||0);
   const rub=v=>typeof formatRub==='function'?formatRub(v):new Intl.NumberFormat('ru-RU').format(Number(v)||0)+' ₽';
-  const escHtml=v=>typeof esc==='function'?esc(v):String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[m]));
+  const escHtml=v=>typeof esc==='function'?esc(v):String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 
   function ensureModel(p){
     if(!p)return;
