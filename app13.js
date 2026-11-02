@@ -1,4 +1,4 @@
-const SITE_BUILD='2026.11.02.1';
+const SITE_BUILD='2026.11.02.2';
 
 function formatReleaseTime(value){
   if(!value)return '—';
@@ -65,3 +65,10 @@ async function checkPublishedVersion(){
 ensureReleaseMonitor();
 checkPublishedVersion();
 setInterval(checkPublishedVersion,15000);
+
+if(!document.querySelector('script[data-worklog-script]')){
+  const s=document.createElement('script');
+  s.src='app14.js?v='+encodeURIComponent(SITE_BUILD);
+  s.dataset.worklogScript='1';
+  document.body.appendChild(s);
+}
