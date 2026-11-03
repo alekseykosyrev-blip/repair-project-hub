@@ -1,5 +1,5 @@
 (()=>{
-  const KEY='repairHubFirstUseHelper_v3';
+  const KEY='repairHubFirstUseHelper_v4';
   const defaults={disabled:false,lastAutoStep:'',seenSteps:{}};
   function load(){try{return {...defaults,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{return {...defaults}}}
   function persist(){try{localStorage.setItem(KEY,JSON.stringify(prefs))}catch{}}
@@ -16,6 +16,23 @@
   function approved(e){return !!e&&['approved','in_progress','closed'].includes(e.estimateStatus)}
   function signedAct(p,e){return !!e&&(p?.acts||[]).find(a=>a.estimateId===e.id&&a.status==='signed')}
   function payment(p,e){return !!e&&(p?.payments||[]).find(x=>!x.estimateId||x.estimateId===e.id)}
+  function finance(p){
+    try{return typeof projectFinance==='function'?projectFinance(p):{toReceive:0,received:0,approved:0,acted:0}}
+    catch{return {toReceive:0,received:0,approved:0,acted:0}}
+  }
+  function rub(v){return typeof formatRub==='function'?formatRub(v):Math.round(money(v)).toLocaleString('ru-RU')+' ₽'}
+
+  function finishProject(p){
+    if(!p)return;
+    const f=finance(p);
+    if(money(f.toReceive)>.01){if(typeof toast==='function')toast(`До закрытия объекта осталось получить ${rub(f.toReceive)}.`,true);return}
+    p.status='Завершён';
+    const status=document.getElementById('status');
+    if(status)status.value='Завершён';
+    if(typeof save==='function')save(false);
+    if(typeof render==='function')render();
+    if(typeof toast==='function')toast('Объект закрыт. Финансовый цикл завершён.');
+  }
 
   function contextStep(){
     const p=project();
@@ -31,9 +48,10 @@
       document.getElementById('actsPanel')?.scrollIntoView({behavior:'smooth',block:'center'});
       setTimeout(()=>{const btn=act?document.querySelector(`#actsBody .edit-act[data-id="${CSS.escape(act.id)}"]`):document.getElementById('addActBtn');btn?.click()},320);
     }};
-    if(!payment(p,e))return {id:'payment',index:7,title:'Зафиксируй оплату',text:'Акт подписан. Внеси поступившую оплату и привяжи её к смете — остаток к получению пересчитается автоматически.',action:'Добавить оплату',target:'paymentsPanel',run:()=>document.getElementById('addPaymentBtn')?.click()};
-    if(e.estimateStatus!=='closed')return {id:'close',index:8,title:'Закрой смету и проверь итог',text:'Смета, расходы, акт и оплата заведены. После завершения работ закрой смету и сверь прибыль, маржу и остатки.',action:'Закрыть смету',target:'estimatesPanel',run:()=>typeof openEstimateMeta==='function'?openEstimateMeta(e):document.querySelector(`[data-estimate-id="${CSS.escape(e.id)}"] .edit-estimate`)?.click()};
-    return {id:'done',index:8,title:'Финансовый цикл заполнен',text:'Основная цепочка по текущей смете завершена. Проверь итоговые цифры и при необходимости добавляй следующую смету или допработы.',action:'Проверить итог',target:'costProfitPanel'};
+    const f=finance(p);
+    if(!payment(p,e)||money(f.toReceive)>.01)return {id:'payment',index:7,title:payment(p,e)?'Дополни оплату':'Зафиксируй оплату',text:money(f.toReceive)>.01?`По объекту осталось получить ${rub(f.toReceive)}. Внеси поступившую оплату — остаток пересчитается автоматически.`:'Акт подписан. Внеси поступившую оплату и привяжи её к смете.',action:'Добавить оплату',target:'paymentsPanel',run:()=>document.getElementById('addPaymentBtn')?.click()};
+    if(p.status!=='Завершён')return {id:'finish',index:7,title:'Оплата закрыта — заверши объект',text:'Остаток к получению равен нулю. Отдельно закрывать смету больше не нужно: можно завершить весь объект.',action:'Закрыть объект',target:'costProfitPanel',run:()=>finishProject(p)};
+    return {id:'done',index:7,title:'Объект закрыт',text:'Рабочий и финансовый маршрут завершён: смета согласована, расходы учтены, акт подписан, оплата получена, объект закрыт.',action:'Проверить итог',target:'costProfitPanel'};
   }
 
   function ensureUi(){
@@ -55,7 +73,7 @@
   function show(step,force=false){
     ensureUi();if(!step||(!force&&prefs.disabled))return;
     const box=document.getElementById('firstUseHelper');box.dataset.step=step.id;
-    document.getElementById('firstUseHelperKicker').textContent=step.id==='done'?'Маршрут завершён':step.index?`Следующий шаг · ${step.index} из 8`:'Что делать дальше';
+    document.getElementById('firstUseHelperKicker').textContent=step.id==='done'?'Маршрут завершён':step.index?`Следующий шаг · ${step.index} из 7`:'Что делать дальше';
     document.getElementById('firstUseHelperTitle').textContent=step.title;
     document.getElementById('firstUseHelperText').textContent=step.text;
     const go=document.getElementById('firstUseHelperGo');go.textContent=step.action||'Перейти к шагу';
