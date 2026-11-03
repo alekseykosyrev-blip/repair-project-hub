@@ -20,7 +20,7 @@
     if(Number(e.estimateCompletionPercent)!==100){e.estimateCompletionPercent=100;changed=true}
     if(Math.abs(num(e.estimateCompletedAmount)-total)>EPS){e.estimateCompletedAmount=total;changed=true}
     const act=(p.acts||[]).find(a=>a.estimateId===e.id);
-    if(act&&Math.abs(num(act.amount)-total)>EPS){act.amount=total;act.updatedAt=Date.now();changed=true}
+    if(act&&act.status!=='signed'&&act.locked!==true&&Math.abs(num(act.amount)-total)>EPS){act.amount=total;act.updatedAt=Date.now();changed=true}
     if(changed&&typeof save==='function')save(false);
     return changed;
   }
