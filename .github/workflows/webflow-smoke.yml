@@ -19,7 +19,7 @@ jobs:
         shell: bash
         run: |
           set -e
-          for f in app*.js field-actions.js measurements.js sw.js; do
+          for f in app*.js field-actions.js measurements.js estimator-bridge.js sw.js; do
             node --check "$f"
           done
       - name: Run finance smoke test
