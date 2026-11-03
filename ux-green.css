@@ -41,6 +41,13 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .first-helper-actions .primary{background:var(--accent)!important;border-color:var(--accent)!important}
 .first-helper-entry.attention{box-shadow:0 0 0 4px rgba(47,125,75,.14),0 10px 30px rgba(15,23,42,.12)!important}
 
+.guided-finance{border-color:#d8e7dd!important;background:linear-gradient(180deg,#f6fbf7,#fff)!important}
+.guided-track span{background:var(--accent)!important}
+.guided-step.current{border-color:#7fb895!important;background:#eef8f1!important;box-shadow:0 0 0 2px rgba(47,125,75,.10)!important}
+.guided-step.current .guided-num{background:var(--accent)!important}
+.guided-empty{border-color:#b9d7c2!important;background:#eef8f1!important}
+.guided-complete{background:#eaf7ee!important;color:#245d38!important}
+
 #fieldActions{margin-top:16px;border:1px solid #d8e7dd;border-radius:17px;padding:12px;background:linear-gradient(180deg,#fbfefc 0%,#f3f8f4 100%)}
 #fieldActions>summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:8px;min-height:42px;padding:4px 2px 10px;font-weight:850;color:#214b32}
 #fieldActions>summary::-webkit-details-marker{display:none}
