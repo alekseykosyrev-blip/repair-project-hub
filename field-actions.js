@@ -66,7 +66,7 @@
     notes.focus();
     notes.setSelectionRange(notes.value.length, notes.value.length);
   }
-  function openMeasurements(){location.href='https://foreman-field.webflow.io/'}
+  function openMeasurements(){if(typeof window.openMeasurementsWorkspace==='function')window.openMeasurementsWorkspace();else if(typeof toast==='function')toast('Модуль обмеров ещё загружается, попробуй ещё раз.',true)}
 
   add('📐 Обмеры', openMeasurements, 'primary');
   add('＋ Задача', () => taskIn(0));
