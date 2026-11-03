@@ -1,19 +1,12 @@
 {
-  "name": "Мои ремонтные проекты",
-  "short_name": "Ремонтные проекты",
-  "description": "Локальный рабочий центр по объектам, задачам, сметам, оплатам и расходам.",
-  "lang": "ru",
-  "start_url": "./",
-  "scope": "./",
-  "display": "standalone",
-  "background_color": "#f3f4f6",
-  "theme_color": "#111827",
-  "icons": [
-    {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+  "name":"Прораб · Обмеры объекта",
+  "short_name":"Прораб · Обмеры",
+  "description":"Мобильный и планшетный офлайн-инструмент для точных строительных обмеров на объекте.",
+  "lang":"ru",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#f3f6f9",
+  "theme_color":"#0f172a",
+  "icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
 }
