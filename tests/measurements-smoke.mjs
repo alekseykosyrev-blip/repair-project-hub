@@ -5,9 +5,16 @@ const index=fs.readFileSync('index.html','utf8');
 const sw=fs.readFileSync('sw.js','utf8');
 const js=fs.readFileSync('measurements.js','utf8');
 const css=fs.readFileSync('measurements.css','utf8');
+const bridge=fs.readFileSync('estimator-bridge.js','utf8');
 
 assert.match(index,/measurements\.css/);
 assert.match(index,/measurements\.js/);
+assert.match(index,/estimator-bridge\.js/);
+assert.match(sw,/estimator-bridge\.js/);
+assert.match(bridge,/ESTIMATE_RESULT_JSON_START/);
+assert.match(bridge,/priceStatus/);
+assert.match(bridge,/measurementEstimateResult/);
+assert.match(bridge,/function audit/);
 assert.match(sw,/measurements\.css/);
 assert.match(sw,/measurements\.js/);
 assert.match(js,/id="measurementBack"/);
