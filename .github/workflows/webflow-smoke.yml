@@ -19,7 +19,7 @@ jobs:
         shell: bash
         run: |
           set -e
-          for f in app*.js field-actions.js sw.js; do
+          for f in app*.js field-actions.js measurements.js sw.js; do
             node --check "$f"
           done
       - name: Run finance smoke test
@@ -28,3 +28,5 @@ jobs:
         run: node tests/offline-smoke.mjs
       - name: Run helper smoke test
         run: node tests/helper-smoke.mjs
+      - name: Run measurements smoke test
+        run: node tests/measurements-smoke.mjs
