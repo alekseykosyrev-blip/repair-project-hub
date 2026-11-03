@@ -80,3 +80,10 @@ textarea{width:100%;min-height:190px;border:1px solid var(--line);border-radius:
 @media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{position:relative;height:auto;padding:14px;gap:12px}.brand{display:flex;align-items:baseline;justify-content:space-between;gap:10px}.brand .sub{margin:0;text-align:right}.projects{flex-direction:row;overflow-x:auto;padding-bottom:2px}.project{min-width:220px;max-width:260px}.main{padding:14px}.grid,.stats{grid-template-columns:1fr}.panel{border-radius:16px;padding:15px}}
 @media(max-width:600px){.brand{display:block}.brand .sub{text-align:left;margin-top:4px}.top{gap:10px}.titleinput{font-size:24px}.progress-box{min-width:70px}.progress-number{font-size:22px}.documents-panel .section-title{flex-direction:column;align-items:flex-start}.doc-head-actions,.documents-panel .btn.primary{width:100%}.row{grid-template-columns:1fr}.task{align-items:center}.task .btn{padding:7px 9px;min-height:34px;font-size:12px}.file{align-items:flex-start;flex-wrap:wrap}.file .grow{min-width:calc(100% - 50px)}.file-actions{width:100%}.file-actions .btn{flex:1}.bottom-actions .btn,.add{width:100%}}
 
+
+#fieldActions {margin-top:16px;border-top:1px solid #dbe2ea}
+#fieldActions summary {min-height:44px;padding:12px 0;cursor:pointer;font-weight:700}
+.field-action-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,155px),1fr));gap:8px}
+.field-action-grid .btn {min-height:44px;white-space:normal}
+/* Keep project editors above floating reports and first-use tips. */
+.modal.show {z-index:1600}
