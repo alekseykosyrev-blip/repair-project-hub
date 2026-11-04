@@ -6,7 +6,7 @@ function log(p,type,data){ensure(p);p.financeHistory.unshift({id:id('fh'),type,a
 function cap(p,estimateId){const e=(typeof estimateFiles==='function'?estimateFiles(p):(p.files||[])).find(x=>x.id===estimateId);return e&&typeof estimateAmount==='function'?estimateAmount(e):0}
 function signed(p,estimateId,except){return (p.acts||[]).filter(a=>a.id!==except&&a.estimateId===estimateId&&a.status==='signed').reduce((s,a)=>s+n(a.amount),0)}
 function paid(p,estimateId){return (p.payments||[]).filter(x=>x.estimateId===estimateId).reduce((s,x)=>s+n(x.amount),0)}
-function installHints(){const m=document.getElementById('actEditModal');if(m&&!m.querySelector('.partial-act-hint'))m.querySelector('.finance-modal-grid')?.insertAdjacentHTML('beforeend','<div class="full partial-act-hint small">Можно создавать несколько частичных актов по одной смете. Сумма подписанных актов не может превышать согласованную сумму. Подписанный акт блокируется от изменения.</div>');const p=document.getElementById('paymentEditModal');if(p&&!p.querySelector('.payment-history-hint'))p.querySelector('.finance-modal-grid')?.insertAdjacentHTML('beforeend','<div class="full payment-history-hint small">Оплата сохраняется как финансовая запись. Для исправления ошибочной оплаты удалите её с подтверждением и внесите новую запись.</div>')}
+function installHints(){const m=document.getElementById('actEditModal');if(m&&!m.querySelector('.partial-act-hint'))m.querySelector('.finance-modal-grid')?.insertAdjacentHTML('beforeend','<div class="full partial-act-hint small">Можно создавать несколько частичных актов по одной смете. Сумма подписанных актов не может превышать согласованную сумму. Подписанный акт блокируется от изменения.</div>');const p=document.getElementById('paymentEditModal');if(p&&!p.querySelector('.payment-history-hint'))p.querySelector('.finance-modal-grid')?.insertAdjacentHTML('beforeend','<div class="full payment-history-hint small">Оплата сохраняется как финансовая запись. Для исправления ошибочной оплаты создайте корректировку ниже: исходная запись останется в истории.</div>')}
 const baseEnsure=window.ensureFinanceModel;if(typeof baseEnsure==='function')window.ensureFinanceModel=function(p){const r=baseEnsure.apply(this,arguments);ensure(p);return r};
 const baseOpen=window.openActEditor;if(typeof baseOpen==='function')window.openActEditor=function(act){const p=active();ensure(p);if(act&&act.status==='signed'){toast('Подписанный акт защищён от изменения',true);return}const r=baseOpen.apply(this,arguments);installHints();return r};
 const baseSaveAct=window.saveActEditor;if(typeof baseSaveAct==='function')window.saveActEditor=function(){const p=active();ensure(p);const ctx=window.financeEditContext||financeEditContext;const old=ctx?.record;if(old?.status==='signed'){toast('Подписанный акт защищён от изменения',true);return}const estimateId=document.getElementById('actEstimate')?.value||old?.estimateId;const amount=n(document.getElementById('actAmount')?.value);const status=document.getElementById('actStatus')?.value;const maximum=cap(p,estimateId),already=signed(p,estimateId,old?.id);if(status==='signed'&&maximum>0&&already+amount>maximum+.01){toast('Сумма подписанных актов превышает согласованную смету',true);return}const before=old?JSON.parse(JSON.stringify(old)):null;const beforeIds=new Set(p.acts.map(a=>a.id));const r=baseSaveAct.apply(this,arguments);const newest=old?p.acts.find(a=>a.id===old.id):p.acts.find(a=>!beforeIds.has(a.id));if(newest&&(!before||JSON.stringify(before)!==JSON.stringify(newest))){if(newest.status==='signed'){newest.signedAt=newest.signedAt||Date.now();newest.locked=true}log(p,before?'act_updated':'act_created',{before,after:newest});save(false)}return r};
@@ -36,12 +36,12 @@ function confirmPaymentCorrection(project,correctionId){
  if(!Number.isFinite(Number(c.amount))||n(c.amount)!==n(original.amount))throw Error('Сумма исходной оплаты изменилась');
  c.status='confirmed';c.confirmedAt=Date.now();
  log(project,'payment_correction_confirmed',{correctionId:c.id,paymentId:c.paymentId,amount:c.amount,reason:c.reason});
- if(typeof save==='function')save(false);
+ if(typeof save==='function'){try{save(false)}catch(error){c.status='pending';delete c.confirmedAt;project.financeHistory=project.financeHistory.filter(x=>!(x.type==='payment_correction_confirmed'&&x.data?.correctionId===c.id));throw error}}
  return c;
 }
 function effectivePaid(project,estimateId){
  ensure(project);
- const reversed=new Set(project.paymentCorrections.filter(c=>c.status==='confirmed').map(c=>c.paymentId));
+ const reversed=new Set(project.paymentCorrections.filter(c=>c.status==='confirmed'&&project.payments.some(p=>p.id===c.paymentId&&p.correctionId===c.id&&n(p.amount)===n(c.amount))).map(c=>c.paymentId));
  return project.payments.filter(x=>x.estimateId===estimateId&&!reversed.has(x.id)).reduce((sum,x)=>sum+n(x.amount),0);
 }
 window.confirmPaymentCorrection=confirmPaymentCorrection;
@@ -62,7 +62,7 @@ function correctionControls(){
  panel.appendChild(box);
  box.querySelector('#correctionRequest').onclick=()=>{
   try{const paymentId=box.querySelector('#correctionPayment').value,reason=box.querySelector('#correctionReason').value;
-   paymentCorrection(project,paymentId,reason);if(typeof save==='function')save(false);refreshCorrections(box,project);
+   const correction=paymentCorrection(project,paymentId,reason);try{if(typeof save==='function')save(false)}catch(error){project.paymentCorrections=project.paymentCorrections.filter(x=>x.id!==correction.id);const original=project.payments.find(x=>x.id===paymentId);if(original&&original.correctionId===correction.id)delete original.correctionId;project.financeHistory=project.financeHistory.filter(x=>!(x.type==='payment_correction_requested'&&x.data?.correction?.id===correction.id));throw error}refreshCorrections(box,project);
    if(typeof toast==='function')toast('Корректировка создана. Подтвердите её отдельно.');
   }catch(err){if(typeof toast==='function')toast(err.message,true)}
  };
