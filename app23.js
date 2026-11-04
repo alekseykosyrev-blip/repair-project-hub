@@ -59,7 +59,7 @@
     const box=document.getElementById('finalAuditPanel');if(!box)return;
     if(!p||!e||e.estimateStatus!=='closed'){box.style.display='none';return}
     const base=typeof projectFinance==='function'?projectFinance(p):{approved:0,completed:0,acted:0,received:0};
-    const extras=approvedChanges(p),costs=actualCosts(p),revenue=num(base.approved)+extras,received=num(base.received);
+    const extras=approvedChanges(p),costs=actualCosts(p),revenue=num(base.approved)+extras,received=typeof window.effectivePaidForProject==='function'?window.effectivePaidForProject(p):num(base.received);
     const remaining=Math.max(0,revenue-received),profit=revenue-costs,margin=revenue>0?profit/revenue*100:0;
     box.style.display='block';
     const grid=document.getElementById('finalAuditGrid');
