@@ -56,7 +56,7 @@ function correctionControls(){
  if(!project)return;
  ensure(project);
  const panel=document.getElementById('paymentsPanel')||document.getElementById('paymentsBody');
- if(!panel||panel.querySelector('#paymentCorrectionPanel'))return;
+ if(!panel)return;const existing=panel.querySelector('#paymentCorrectionPanel');if(existing){refreshCorrections(existing,project);return;}
  const box=document.createElement('section');box.id='paymentCorrectionPanel';box.className='measurement-note';
  box.innerHTML='<strong>Корректировка ошибочной оплаты</strong><p class="small">Исходная запись сохраняется. После подтверждения сумма исключается из эффективных поступлений.</p><label class="small" for="correctionPayment">Оплата</label><select id="correctionPayment" style="max-width:100%;width:100%"></select><label class="small" for="correctionReason">Причина</label><input id="correctionReason" placeholder="Причина исправления" style="max-width:100%;width:100%"><div class="actions"><button class="btn" id="correctionRequest">Создать корректировку</button></div><div id="correctionPending"></div>';
  panel.appendChild(box);
