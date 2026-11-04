@@ -26,9 +26,30 @@ function paymentCorrection(project,paymentId,reason){
  return correction;
 }
 window.requestPaymentCorrection=paymentCorrection;
+function confirmPaymentCorrection(project,correctionId){
+ ensure(project);
+ const c=project.paymentCorrections.find(x=>x.id===correctionId);
+ if(!c)throw Error('Корректировка не найдена');
+ if(c.status!=='pending')throw Error('Корректировка уже обработана');
+ const original=project.payments.find(x=>x.id===c.paymentId);
+ if(!original||original.correctionId!==c.id)throw Error('Связь с исходной оплатой нарушена');
+ if(!Number.isFinite(Number(c.amount))||n(c.amount)!==n(original.amount))throw Error('Сумма исходной оплаты изменилась');
+ c.status='confirmed';c.confirmedAt=Date.now();
+ log(project,'payment_correction_confirmed',{correctionId:c.id,paymentId:c.paymentId,amount:c.amount,reason:c.reason});
+ if(typeof save==='function')save(false);
+ return c;
+}
+function effectivePaid(project,estimateId){
+ ensure(project);
+ const reversed=new Set(project.paymentCorrections.filter(c=>c.status==='confirmed').map(c=>c.paymentId));
+ return project.payments.filter(x=>x.estimateId===estimateId&&!reversed.has(x.id)).reduce((sum,x)=>sum+n(x.amount),0);
+}
+window.confirmPaymentCorrection=confirmPaymentCorrection;
+window.effectivePaidForEstimate=effectivePaid;
+
 function patchRows(){const p=active();if(!p)return;ensure(p);document.querySelectorAll('[data-act-edit]').forEach(b=>{const a=p.acts.find(x=>x.id===b.dataset.actEdit);if(a?.status==='signed'){b.textContent='Подписан';b.disabled=true;b.title='Подписанный акт защищён'}})}
 const baseRender=window.render;if(typeof baseRender==='function')window.render=function(){const r=baseRender.apply(this,arguments);queueMicrotask(()=>{installHints();patchRows()});return r};
-function audit(){const p=active();if(!p)return;ensure(p);const issues=[];(p.acts||[]).filter(a=>a.status==='signed').forEach(a=>{const max=cap(p,a.estimateId),total=signed(p,a.estimateId,null);if(max>0&&total>max+.01&&!issues.includes(a.estimateId))issues.push(a.estimateId)});p.financeAudit={checkedAt:Date.now(),overActedEstimateIds:issues,paymentTotal:(p.payments||[]).reduce((s,x)=>s+n(x.amount),0),signedActTotal:(p.acts||[]).filter(a=>a.status==='signed').reduce((s,a)=>s+n(a.amount),0)};return p.financeAudit}
+function audit(){const p=active();if(!p)return;ensure(p);const issues=[];(p.acts||[]).filter(a=>a.status==='signed').forEach(a=>{const max=cap(p,a.estimateId),total=signed(p,a.estimateId,null);if(max>0&&total>max+.01&&!issues.includes(a.estimateId))issues.push(a.estimateId)});p.financeAudit={checkedAt:Date.now(),overActedEstimateIds:issues,paymentTotal:(p.payments||[]).filter(x=>!(p.paymentCorrections||[]).some(c=>c.paymentId===x.id&&c.status==='confirmed')).reduce((s,x)=>s+n(x.amount),0),originalPaymentTotal:(p.payments||[]).reduce((s,x)=>s+n(x.amount),0),confirmedCorrections:(p.paymentCorrections||[]).filter(c=>c.status==='confirmed').length,signedActTotal:(p.acts||[]).filter(a=>a.status==='signed').reduce((s,a)=>s+n(a.amount),0)};return p.financeAudit}
 window.auditFinanceHistory=audit;
 (state.projects||[]).forEach(ensure);installHints();patchRows();
 })();
