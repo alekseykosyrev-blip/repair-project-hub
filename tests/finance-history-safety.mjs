@@ -6,4 +6,8 @@ assert.match(final,/act\.status!=='signed'&&act\.locked!==true/, 'Closing an est
 assert.match(history,/const beforeIds=new Set\(p\.acts\.map\(a=>a\.id\)\)/, 'Capture existing acts before saving');
 assert.match(history,/p\.acts\.find\(a=>!beforeIds\.has\(a\.id\)\)/, 'Only log newly created acts');
 assert.match(history,/JSON\.stringify\(before\)!==JSON\.stringify\(newest\)/, 'Only log actual changes');
+assert.match(history,/function paymentCorrection\(/, 'Non-destructive correction request exists');
+assert.match(history,/original\.correctionId/, 'Duplicate correction requests blocked');
+assert.match(history,/payment_correction_requested/, 'Correction history event preserved');
+assert.match(history,/status:'pending'/, 'Correction cannot silently change accounting totals');
 console.log('Finance history safety smoke passed');
