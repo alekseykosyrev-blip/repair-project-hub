@@ -46,10 +46,50 @@ function effectivePaid(project,estimateId){
 }
 window.confirmPaymentCorrection=confirmPaymentCorrection;
 window.effectivePaidForEstimate=effectivePaid;
+window.effectivePaidForProject=function(project){
+ ensure(project);
+ const reversed=new Set(project.paymentCorrections.filter(c=>c.status==='confirmed').map(c=>c.paymentId));
+ return project.payments.filter(x=>!reversed.has(x.id)).reduce((sum,x)=>sum+n(x.amount),0);
+};
+function correctionControls(){
+ const project=typeof active==='function'?active():null;
+ if(!project)return;
+ ensure(project);
+ const panel=document.getElementById('paymentsPanel')||document.getElementById('paymentsBody');
+ if(!panel||panel.querySelector('#paymentCorrectionPanel'))return;
+ const box=document.createElement('section');box.id='paymentCorrectionPanel';box.className='measurement-note';
+ box.innerHTML='<strong>Корректировка ошибочной оплаты</strong><p class="small">Исходная запись сохраняется. После подтверждения сумма исключается из эффективных поступлений.</p><label class="small" for="correctionPayment">Оплата</label><select id="correctionPayment" style="max-width:100%;width:100%"></select><label class="small" for="correctionReason">Причина</label><input id="correctionReason" placeholder="Причина исправления" style="max-width:100%;width:100%"><div class="actions"><button class="btn" id="correctionRequest">Создать корректировку</button></div><div id="correctionPending"></div>';
+ panel.appendChild(box);
+ box.querySelector('#correctionRequest').onclick=()=>{
+  try{const paymentId=box.querySelector('#correctionPayment').value,reason=box.querySelector('#correctionReason').value;
+   paymentCorrection(project,paymentId,reason);if(typeof save==='function')save(false);refreshCorrections(box,project);
+   if(typeof toast==='function')toast('Корректировка создана. Подтвердите её отдельно.');
+  }catch(err){if(typeof toast==='function')toast(err.message,true)}
+ };
+ refreshCorrections(box,project);
+}
+function refreshCorrections(box,project){
+ const select=box.querySelector('#correctionPayment');
+ const eligible=project.payments.filter(x=>!x.correctionId);
+ select.innerHTML=eligible.map(x=>'<option value="'+String(x.id).replace(/["&<>]/g,'')+'">'+String(x.date||'')+' · '+n(x.amount).toLocaleString('ru-RU')+' ₽</option>').join('');
+ box.querySelector('#correctionRequest').disabled=!eligible.length;
+ const pending=project.paymentCorrections.filter(x=>x.status==='pending');
+ const host=box.querySelector('#correctionPending');host.replaceChildren();
+ pending.forEach(c=>{
+  const row=document.createElement('div');row.className='small';row.style.marginTop='8px';
+  const label=document.createElement('span');label.textContent=n(c.amount).toLocaleString('ru-RU')+' ₽ · '+c.reason+' ';
+  const btn=document.createElement('button');btn.className='btn';btn.textContent='Подтвердить корректировку';
+  btn.onclick=()=>{if(!window.confirm('Исключить эту оплату из эффективных поступлений? Исходная запись останется в истории.'))return;
+   try{confirmPaymentCorrection(project,c.id);refreshCorrections(box,project);if(typeof render==='function')render();if(typeof toast==='function')toast('Корректировка подтверждена')}
+   catch(err){if(typeof toast==='function')toast(err.message,true)}
+  };
+  row.append(label,btn);host.append(row);
+ });
+}
 
 function patchRows(){const p=active();if(!p)return;ensure(p);document.querySelectorAll('[data-act-edit]').forEach(b=>{const a=p.acts.find(x=>x.id===b.dataset.actEdit);if(a?.status==='signed'){b.textContent='Подписан';b.disabled=true;b.title='Подписанный акт защищён'}})}
-const baseRender=window.render;if(typeof baseRender==='function')window.render=function(){const r=baseRender.apply(this,arguments);queueMicrotask(()=>{installHints();patchRows()});return r};
+const baseRender=window.render;if(typeof baseRender==='function')window.render=function(){const r=baseRender.apply(this,arguments);queueMicrotask(()=>{installHints();patchRows();correctionControls()});return r};
 function audit(){const p=active();if(!p)return;ensure(p);const issues=[];(p.acts||[]).filter(a=>a.status==='signed').forEach(a=>{const max=cap(p,a.estimateId),total=signed(p,a.estimateId,null);if(max>0&&total>max+.01&&!issues.includes(a.estimateId))issues.push(a.estimateId)});p.financeAudit={checkedAt:Date.now(),overActedEstimateIds:issues,paymentTotal:(p.payments||[]).filter(x=>!(p.paymentCorrections||[]).some(c=>c.paymentId===x.id&&c.status==='confirmed')).reduce((s,x)=>s+n(x.amount),0),originalPaymentTotal:(p.payments||[]).reduce((s,x)=>s+n(x.amount),0),confirmedCorrections:(p.paymentCorrections||[]).filter(c=>c.status==='confirmed').length,signedActTotal:(p.acts||[]).filter(a=>a.status==='signed').reduce((s,a)=>s+n(a.amount),0)};return p.financeAudit}
 window.auditFinanceHistory=audit;
-(state.projects||[]).forEach(ensure);installHints();patchRows();
+(state.projects||[]).forEach(ensure);installHints();patchRows();correctionControls();
 })();
