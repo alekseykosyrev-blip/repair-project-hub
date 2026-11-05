@@ -41,14 +41,28 @@ function confirmPaymentCorrection(project,correctionId){
 }
 function effectivePaid(project,estimateId){
  ensure(project);
- const reversed=new Set(project.paymentCorrections.filter(c=>c.status==='confirmed'&&project.payments.some(p=>p.id===c.paymentId&&p.correctionId===c.id&&n(p.amount)===n(c.amount))).map(c=>c.paymentId));
+ const reversed=confirmedReversals(project);
  return project.payments.filter(x=>x.estimateId===estimateId&&!reversed.has(x.id)).reduce((sum,x)=>sum+n(x.amount),0);
 }
 window.confirmPaymentCorrection=confirmPaymentCorrection;
 window.effectivePaidForEstimate=effectivePaid;
-window.effectivePaidForProject=function(project){
+// Only a confirmed correction linked to the original payment and its unchanged
+// amount can remove a receipt from financial totals. Invalid legacy records are ignored.
+function confirmedReversals(project){
  ensure(project);
- const reversed=new Set(project.paymentCorrections.filter(c=>c.status==='confirmed').map(c=>c.paymentId));
+ const reversed=new Set();
+ project.paymentCorrections.forEach(c=>{
+  if(c.status!=='confirmed')return;
+  const original=project.payments.find(p=>p.id===c.paymentId);
+  if(!original||original.correctionId!==c.id)return;
+  if(!Number.isFinite(Number(c.amount))||n(c.amount)!==n(original.amount))return;
+  reversed.add(original.id);
+ });
+ return reversed;
+}
+window.effectivePaidForProject=function(project){
+ if(!project)return 0;
+ const reversed=confirmedReversals(project);
  return project.payments.filter(x=>!reversed.has(x.id)).reduce((sum,x)=>sum+n(x.amount),0);
 };
 function correctionControls(){
@@ -89,7 +103,7 @@ function refreshCorrections(box,project){
 
 function patchRows(){const p=active();if(!p)return;ensure(p);document.querySelectorAll('[data-act-edit]').forEach(b=>{const a=p.acts.find(x=>x.id===b.dataset.actEdit);if(a?.status==='signed'){b.textContent='Подписан';b.disabled=true;b.title='Подписанный акт защищён'}})}
 const baseRender=window.render;if(typeof baseRender==='function')window.render=function(){const r=baseRender.apply(this,arguments);queueMicrotask(()=>{installHints();patchRows();correctionControls()});return r};
-function audit(){const p=active();if(!p)return;ensure(p);const issues=[];(p.acts||[]).filter(a=>a.status==='signed').forEach(a=>{const max=cap(p,a.estimateId),total=signed(p,a.estimateId,null);if(max>0&&total>max+.01&&!issues.includes(a.estimateId))issues.push(a.estimateId)});p.financeAudit={checkedAt:Date.now(),overActedEstimateIds:issues,paymentTotal:(p.payments||[]).filter(x=>!(p.paymentCorrections||[]).some(c=>c.paymentId===x.id&&c.status==='confirmed')).reduce((s,x)=>s+n(x.amount),0),originalPaymentTotal:(p.payments||[]).reduce((s,x)=>s+n(x.amount),0),confirmedCorrections:(p.paymentCorrections||[]).filter(c=>c.status==='confirmed').length,signedActTotal:(p.acts||[]).filter(a=>a.status==='signed').reduce((s,a)=>s+n(a.amount),0)};return p.financeAudit}
+function audit(){const p=active();if(!p)return;ensure(p);const issues=[];(p.acts||[]).filter(a=>a.status==='signed').forEach(a=>{const max=cap(p,a.estimateId),total=signed(p,a.estimateId,null);if(max>0&&total>max+.01&&!issues.includes(a.estimateId))issues.push(a.estimateId)});p.financeAudit={checkedAt:Date.now(),overActedEstimateIds:issues,paymentTotal:window.effectivePaidForProject(p),originalPaymentTotal:(p.payments||[]).reduce((s,x)=>s+n(x.amount),0),confirmedCorrections:(p.paymentCorrections||[]).filter(c=>c.status==='confirmed').length,signedActTotal:(p.acts||[]).filter(a=>a.status==='signed').reduce((s,a)=>s+n(a.amount),0)};return p.financeAudit}
 window.auditFinanceHistory=audit;
 (state.projects||[]).forEach(ensure);installHints();patchRows();correctionControls();
 })();
