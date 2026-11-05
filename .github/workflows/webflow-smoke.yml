@@ -3,6 +3,8 @@ name: Webflow smoke test
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -30,3 +32,5 @@ jobs:
         run: node tests/helper-smoke.mjs
       - name: Run measurements smoke test
         run: node tests/measurements-smoke.mjs
+      - name: Run finance correction regression test
+        run: node tests/finance-history-safety.mjs
