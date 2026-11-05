@@ -13,35 +13,6 @@
   const approvedChanges=p=>sum((p?.changeOrders||[]).filter(x=>x?.status==='approved'),x=>x.amount);
   const actualCosts=p=>sum(p?.costs||[],x=>x.amount);
 
-  function normalizeClosedEstimate(p,e){
-    if(!p||!e||e.estimateStatus!=='closed'||e.estimateConfirmed!==true)return false;
-    const total=estimateTotal(e);
-    let changed=false;
-    if(Number(e.estimateCompletionPercent)!==100){e.estimateCompletionPercent=100;changed=true}
-    if(Math.abs(num(e.estimateCompletedAmount)-total)>EPS){e.estimateCompletedAmount=total;changed=true}
-    const act=(p.acts||[]).find(a=>a.estimateId===e.id);
-    if(act&&act.status!=='signed'&&act.locked!==true&&Math.abs(num(act.amount)-total)>EPS){act.amount=total;act.updatedAt=Date.now();changed=true}
-    if(changed&&typeof save==='function')save(false);
-    return changed;
-  }
-
-  function patchGuidedRoute(e){
-    const panel=document.getElementById('guidedFinancePanel');
-    if(!panel||!e||e.estimateStatus!=='closed')return;
-    const steps=[...panel.querySelectorAll('.guided-step')];
-    const last=steps[steps.length-1];
-    if(last){
-      last.classList.add('done');last.classList.remove('current');
-      const mark=last.querySelector('.guided-num');if(mark)mark.textContent='✓';
-      const action=last.querySelector('[data-guided-action="close"]');
-      if(action){const badge=document.createElement('span');badge.className='status-badge approved';badge.textContent='Готово';action.replaceWith(badge)}
-    }
-    const text=document.getElementById('guidedProgressText');if(text)text.textContent='8 из 8';
-    const bar=document.getElementById('guidedProgressBar');if(bar)bar.style.width='100%';
-    const body=document.getElementById('guidedFinanceBody');
-    if(body&&!body.querySelector('.guided-complete'))body.insertAdjacentHTML('beforeend','<div class="guided-complete">Финансовый цикл по этой смете завершён. Итоговый расчёт проверен.</div>');
-  }
-
   function ensureFinalAuditPanel(){
     if(document.getElementById('finalAuditPanel'))return;
     const guide=document.getElementById('guidedFinancePanel');
@@ -50,14 +21,14 @@
     style.textContent='.final-audit{margin-top:12px;border:1px solid #bbf7d0;background:#f0fdf4;border-radius:16px;padding:14px}.final-audit h3{margin:0;font-size:16px}.final-audit-sub{font-size:11px;color:#64748b;margin-top:4px}.final-audit-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}.final-audit-kpi{background:#fff;border:1px solid #dcfce7;border-radius:11px;padding:10px;min-width:0}.final-audit-kpi span{display:block;font-size:10px;color:#64748b}.final-audit-kpi strong{display:block;font-size:14px;margin-top:4px;overflow:hidden;text-overflow:ellipsis}.final-audit-formula{margin-top:10px;font-size:11px;color:#166534;line-height:1.45}@media(max-width:800px){.final-audit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}';
     document.head.appendChild(style);
     const box=document.createElement('section');box.id='finalAuditPanel';box.className='final-audit';box.style.display='none';
-    box.innerHTML='<h3>Итоговый расчёт объекта</h3><div class="final-audit-sub">Контрольная сводка после закрытия сметы</div><div class="final-audit-grid" id="finalAuditGrid"></div><div class="final-audit-formula" id="finalAuditFormula"></div>';
+    box.innerHTML='<h3>Итоговый расчёт объекта</h3><div class="final-audit-sub">Контрольная сводка после закрытия объекта</div><div class="final-audit-grid" id="finalAuditGrid"></div><div class="final-audit-formula" id="finalAuditFormula"></div>';
     guide.insertAdjacentElement('afterend',box);
   }
 
   function renderFinalAudit(p,e){
     ensureFinalAuditPanel();
     const box=document.getElementById('finalAuditPanel');if(!box)return;
-    if(!p||!e||e.estimateStatus!=='closed'){box.style.display='none';return}
+    if(!p||p.status!=='Завершён'){box.style.display='none';return}
     const base=typeof projectFinance==='function'?projectFinance(p):{approved:0,completed:0,acted:0,received:0};
     const extras=approvedChanges(p),costs=actualCosts(p),revenue=num(base.approved)+extras,received=typeof window.effectivePaidForProject==='function'?window.effectivePaidForProject(p):num(base.received);
     const remaining=Math.max(0,revenue-received),profit=revenue-costs,margin=revenue>0?profit/revenue*100:0;
@@ -71,8 +42,6 @@
   function syncFinalState(){
     const p=typeof active==='function'?active():null;if(!p)return;
     const e=currentEstimate(p);if(!e)return;
-    normalizeClosedEstimate(p,e);
-    patchGuidedRoute(e);
     renderFinalAudit(p,e);
   }
 
