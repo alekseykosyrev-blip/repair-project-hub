@@ -34,4 +34,8 @@ assert.throws(()=>ctx.requestPaymentCorrection(project,'p1','Повторная 
 const fake={id:'bad',paymentId:'p2',status:'confirmed',amount:50};
 project.paymentCorrections.push(fake);
 assert.equal(ctx.projectFinance(project).received,50,'Unlinked correction must be ignored');
+const integrity=ctx.validatePaymentCorrections(project);
+assert.equal(integrity.valid,false,'Unlinked correction is reported');
+assert.ok(integrity.issues.some(x=>x.includes('нарушена связь')),'Broken payment link identified');
+assert.equal(project.payments.length,2,'Integrity check never removes payments');
 console.log('Finance correction regression passed');
