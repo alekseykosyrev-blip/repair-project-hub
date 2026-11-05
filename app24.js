@@ -135,6 +135,40 @@ window.validatePaymentCorrections=function(project){
  }
  return {valid:issues.length===0,issues};
 };
+// Compact read-only correction health panel, refreshed on every finance render.
+function correctionHealthPanel(project){
+ const host=document.getElementById('paymentCorrectionPanel');
+ if(!host||!project)return;
+ let box=host.querySelector('#correctionHealth');
+ if(!box){
+  box=document.createElement('div');box.id='correctionHealth';box.className='small';
+  box.style.cssText='margin-top:12px;padding:10px;border:1px solid #d1d5db;border-radius:10px;overflow-wrap:anywhere';
+  box.setAttribute('role','status');box.setAttribute('aria-live','polite');
+  host.appendChild(box);
+ }
+ const report=window.validatePaymentCorrections(project);
+ const total=project.paymentCorrections.length;
+ const pending=project.paymentCorrections.filter(c=>c.status==='pending').length;
+ const confirmed=project.paymentCorrections.filter(c=>c.status==='confirmed').length;
+ box.replaceChildren();
+ const heading=document.createElement('strong');
+ heading.textContent='Проверка корректировок: '+(report.valid?'без ошибок':'обнаружены проблемы');
+ box.appendChild(heading);
+ const counts=document.createElement('div');
+ counts.textContent='Всего: '+total+' · ожидают: '+pending+' · подтверждены: '+confirmed;
+ box.appendChild(counts);
+ if(!report.valid){
+  const warning=document.createElement('div');warning.textContent='Проблемы требуют проверки до закрытия объекта. Исходные записи не изменены.';
+  warning.style.color='#9a3412';box.appendChild(warning);
+  const details=document.createElement('details');const summary=document.createElement('summary');
+  summary.textContent='Показать ошибки ('+report.issues.length+')';details.appendChild(summary);
+  const list=document.createElement('ul');list.style.paddingLeft='20px';
+  report.issues.slice(0,30).forEach(message=>{const li=document.createElement('li');li.textContent=message;list.appendChild(li)});
+  details.appendChild(list);box.appendChild(details);
+ }
+}
+const oldCorrectionControls=correctionControls;
+correctionControls=function(){oldCorrectionControls();const project=typeof active==='function'?active():null;if(project)correctionHealthPanel(project)};
 window.auditFinanceHistory=audit;
 (state.projects||[]).forEach(ensure);installHints();patchRows();correctionControls();
 })();
