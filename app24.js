@@ -119,5 +119,22 @@ function patchRows(){const p=active();if(!p)return;ensure(p);document.querySelec
 const baseRender=window.render;if(typeof baseRender==='function')window.render=function(){const r=baseRender.apply(this,arguments);queueMicrotask(()=>{installHints();patchRows();correctionControls()});return r};
 function audit(){const p=active();if(!p)return;ensure(p);const issues=[];(p.acts||[]).filter(a=>a.status==='signed').forEach(a=>{const max=cap(p,a.estimateId),total=signed(p,a.estimateId,null);if(max>0&&total>max+.01&&!issues.includes(a.estimateId))issues.push(a.estimateId)});p.financeAudit={checkedAt:Date.now(),overActedEstimateIds:issues,paymentTotal:window.effectivePaidForProject(p),originalPaymentTotal:(p.payments||[]).reduce((s,x)=>s+n(x.amount),0),confirmedCorrections:(p.paymentCorrections||[]).filter(c=>c.status==='confirmed').length,signedActTotal:(p.acts||[]).filter(a=>a.status==='signed').reduce((s,a)=>s+n(a.amount),0)};return p.financeAudit}
 window.auditFinanceHistory=audit;
+// Read-only diagnostics: never mutate original payments or signed acts.
+window.validatePaymentCorrections=function(project){
+ if(!project)return {valid:false,issues:['Объект не выбран']};
+ ensure(project);
+ const issues=[],seen=new Set();
+ for(const c of project.paymentCorrections){
+  const original=project.payments.find(p=>p.id===c.paymentId);
+  if(!original){issues.push('Корректировка '+c.id+': исходный платёж отсутствует');continue}
+  if(original.correctionId!==c.id)issues.push('Корректировка '+c.id+': нарушена связь с платежом');
+  if(!Number.isFinite(Number(c.amount))||n(c.amount)!==n(original.amount))issues.push('Корректировка '+c.id+': сумма не совпадает');
+  if(seen.has(c.paymentId))issues.push('Платёж '+c.paymentId+': несколько корректировок');
+  seen.add(c.paymentId);
+  if(!['pending','confirmed'].includes(c.status))issues.push('Корректировка '+c.id+': неизвестный статус');
+ }
+ return {valid:issues.length===0,issues};
+};
+window.auditFinanceHistory=audit;
 (state.projects||[]).forEach(ensure);installHints();patchRows();correctionControls();
 })();
