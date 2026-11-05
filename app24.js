@@ -65,6 +65,17 @@ window.effectivePaidForProject=function(project){
  const reversed=confirmedReversals(project);
  return project.payments.filter(x=>!reversed.has(x.id)).reduce((sum,x)=>sum+n(x.amount),0);
 };
+// Use effective confirmed receipts consistently in all finance screens and closure checks.
+const originalProjectFinance=typeof window.projectFinance==='function'?window.projectFinance:null;
+if(originalProjectFinance)window.projectFinance=function(project){
+ const base=originalProjectFinance(project);
+ if(!project)return base;
+ const received=window.effectivePaidForProject(project);
+ return {...base,received,toReceive:Math.max(0,n(base.acted)-received)};
+};
+if(typeof window.estimatePaid==='function'){
+ window.estimatePaid=function(project,estimateId){return effectivePaid(project,estimateId)};
+}
 function correctionControls(){
  const project=typeof active==='function'?active():null;
  if(!project)return;
@@ -75,6 +86,9 @@ function correctionControls(){
  box.innerHTML='<strong>Корректировка ошибочной оплаты</strong><p class="small">Исходная запись сохраняется. После подтверждения сумма исключается из эффективных поступлений.</p><label class="small" for="correctionPayment">Оплата</label><select id="correctionPayment" style="max-width:100%;width:100%"></select><label class="small" for="correctionReason">Причина</label><input id="correctionReason" placeholder="Причина исправления" style="max-width:100%;width:100%"><div class="actions"><button class="btn" id="correctionRequest">Создать корректировку</button></div><div id="correctionPending"></div>';
  panel.appendChild(box);
  box.querySelector('#correctionRequest').onclick=()=>{
+  const project=typeof active==='function'?active():null;
+  if(!project)return;
+  ensure(project);
   try{const paymentId=box.querySelector('#correctionPayment').value,reason=box.querySelector('#correctionReason').value;
    const correction=paymentCorrection(project,paymentId,reason);try{if(typeof save==='function')save(false)}catch(error){project.paymentCorrections=project.paymentCorrections.filter(x=>x.id!==correction.id);const original=project.payments.find(x=>x.id===paymentId);if(original&&original.correctionId===correction.id)delete original.correctionId;project.financeHistory=project.financeHistory.filter(x=>!(x.type==='payment_correction_requested'&&x.data?.correction?.id===correction.id));throw error}refreshCorrections(box,project);
    if(typeof toast==='function')toast('Корректировка создана. Подтвердите её отдельно.');
