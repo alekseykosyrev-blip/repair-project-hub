@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const html=fs.readFileSync('index.html','utf8');
+const legacy=fs.readFileSync('legacy.html','utf8');
+const sw=fs.readFileSync('sw.js','utf8');
+const css=fs.readFileSync('crm.css','utf8');
+assert.match(html,/crm-app\.mjs/);
+assert.match(html,/crm\.css/);
+assert.match(html,/manifest\.webmanifest/);
+assert.doesNotMatch(html,/<script[^>]+app(?:\d+)\.js/);
+assert.match(legacy,/app1\.js/);
+assert.match(sw,/crm-app\.mjs/);
+assert.match(sw,/crm-core\.mjs/);
+assert.match(sw,/crm\.css/);
+assert.match(sw,/caches\.match/);
+assert.match(css,/\.sidebar/);
+assert.match(css,/@media\(max-width:740px\)/);
+console.log('CRM v2 shell and offline tests passed');
