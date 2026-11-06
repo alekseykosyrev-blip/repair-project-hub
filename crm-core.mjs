@@ -66,6 +66,20 @@ export function addLine(state,p,e,room,name,q,unit,rateId=''){
   const item={id:uid(),room:room.trim()||'Общие работы',name:name.trim(),qtyMilli:quantity(q),unit,rateId:rate?.id||null,priceCents:rate?rate.priceCents:null};
   e.items.push(item);return item;
 }
+export function assignRate(state,e,lineId,rateId){
+  assert(!e.approved,'Согласованную смету менять нельзя');
+  const line=e.items.find(i=>i.id===lineId);
+  assert(line,'Позиция не найдена');
+  const rate=state.rates.find(r=>r.id===rateId&&r.approved);
+  assert(rate,'Утверждённая расценка не найдена');
+  assert(rate.unit===line.unit,'Единица расценки не совпадает с единицей работы');
+  line.priceCents=rate.priceCents;line.rateId=rate.id;return line;
+}
+export function removeLine(e,lineId){
+  assert(!e.approved,'Согласованную смету менять нельзя');
+  const index=e.items.findIndex(i=>i.id===lineId);
+  assert(index>=0,'Позиция не найдена');e.items.splice(index,1);
+}
 export function estimateTotal(e){
   const priced=sum(e.items,i=>amount(i.qtyMilli,i.priceCents));
   const missing=e.items.filter(i=>i.priceCents===null).length;
