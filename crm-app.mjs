@@ -1,4 +1,4 @@
-import {STORE,BACKUP,blank,read,write,clone,assert,cents,quantity,amount,rub,qfmt,sum,project as getProject,estimate as getEstimate,newProject,newEstimate,addRate,addLine,estimateTotal,approveEstimate,addExpense,addPayment,reversePayment,addAct,addTask,summary,closeProject,legacyPreview,importLegacy,today} from './crm-core.mjs';
+import {STORE,BACKUP,blank,read,write,clone,assert,cents,quantity,amount,rub,qfmt,sum,project as getProject,estimate as getEstimate,newProject,newEstimate,addRate,addLine,assignRate,removeLine,estimateTotal,approveEstimate,addExpense,addPayment,reversePayment,addAct,addTask,summary,closeProject,legacyPreview,importLegacy,today} from './crm-core.mjs';
 
 const app=document.getElementById('app');
 const modal=document.getElementById('modal');
@@ -9,7 +9,7 @@ let state=null,view='dashboard',tab='overview',activeId=null,filter='',fatal=nul
 try{state=read()}catch(err){fatal=err.message}
 function notify(s,error=false){const x=document.getElementById('toast');x.textContent=s;x.className='show'+(error?' error':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>x.className='',3600)}
 function save(){state=write(state);render()}
-function attempt(f){try{f();save();notify('Сохранено')}catch(e){notify(e.message||'Ошибка операции',true)}}
+function attempt(f){const before=clone(state);try{f();save();notify('Сохранено')}catch(e){state=before;render();notify(e.message||'Ошибка операции',true)}}
 function p(){return getProject(state,activeId)}
 function rows(items,fn){return items.length?items.map(fn).join(''):'<tr><td colspan="9"><div class="empty">Пока нет записей</div></td></tr>'}
 function btn(text,action,style='',args=''){return '<button type="button" class="btn '+style+'" data-action="'+action+'" '+args+'>'+text+'</button>'}
@@ -64,7 +64,7 @@ return content;
 function estimatesTab(x){
 let out=panel('Сметы объекта',x.estimates.length?table(['Смета','Статус','Позиций','Сумма','Действия'],x.estimates.map(e=>{const t=estimateTotal(e);return '<tr><td><div class="strong">'+safe(e.title)+'</div><div class="small">'+(t.missing?'Без расценок: '+t.missing:'Все цены заполнены')+'</div></td><td>'+tag(e.approved?'green':'orange',e.approved?'Согласована':'Черновик')+'</td><td>'+e.items.length+'</td><td class="money">'+money(t.priced)+'</td><td>'+btn('Открыть','openEstimate','','data-id="'+safe(e.id)+'"')+(e.approved?'':btn('Утвердить','approveEstimate','soft','data-id="'+safe(e.id)+'"'))+'</td></tr>'}).join('')):'<div class="empty"><strong>Пока нет смет</strong>Добавь первую смету по объекту.</div>',btn('+ Новая смета','newEstimate','primary'));
 if(window.__estimateId){const e=getEstimate(x,window.__estimateId);if(e){const t=estimateTotal(e);
-out+='<div style="margin-top:16px">'+panel('Смета: '+safe(e.title),'<div class="info">Стоимость рассчитывается только по утверждённым расценкам из справочника. Нет цены — позиция остаётся без стоимости.</div>'+table(['Помещение / работа','Объём','Цена за ед.','Сумма'],rows(e.items,i=>'<tr><td><div class="strong">'+safe(i.name)+'</div><div class="small">'+safe(i.room)+'</div></td><td>'+fmt(i.qtyMilli)+' '+safe(i.unit)+'</td><td class="money">'+(i.priceCents===null?'Нет цены':money(i.priceCents))+'</td><td class="money">'+(i.priceCents===null?'—':money(amount(i.qtyMilli,i.priceCents)))+'</td></tr>'))+'<div class="row" style="margin-top:15px"><div><b>Итого с расценками: '+money(t.priced)+'</b><div class="small">'+(t.missing?'Без расценок: '+t.missing:'Все позиции оценены')+'</div></div></div>',e.approved?tag('green','Согласована'):btn('+ Работа','newLine','primary','data-id="'+safe(e.id)+'"')+btn('Согласовать','approveEstimate','soft','data-id="'+safe(e.id)+'"'))+'</div>';
+out+='<div style="margin-top:16px">'+panel('Смета: '+safe(e.title),'<div class="info">Стоимость рассчитывается только по утверждённым расценкам из справочника. Нет цены — позиция остаётся без стоимости.</div>'+table(['Помещение / работа','Объём','Цена за ед.','Сумма',''],rows(e.items,i=>'<tr><td><div class="strong">'+safe(i.name)+'</div><div class="small">'+safe(i.room)+'</div></td><td>'+fmt(i.qtyMilli)+' '+safe(i.unit)+'</td><td class="money">'+(i.priceCents===null?'Нет цены':money(i.priceCents))+'</td><td class="money">'+(i.priceCents===null?'—':money(amount(i.qtyMilli,i.priceCents)))+'</td><td>'+(e.approved?'':(i.priceCents===null?btn('Назначить цену','assignRate','soft','data-id="'+safe(i.id)+'" data-estimate="'+safe(e.id)+'"'):'')+btn('×','removeLine','danger','data-id="'+safe(i.id)+'" data-estimate="'+safe(e.id)+'"'))+'</td></tr>'))+'<div class="row" style="margin-top:15px"><div><b>Итого с расценками: '+money(t.priced)+'</b><div class="small">'+(t.missing?'Без расценок: '+t.missing:'Все позиции оценены')+'</div></div></div>',e.approved?tag('green','Согласована'):btn('+ Работа','newLine','primary','data-id="'+safe(e.id)+'"')+btn('Согласовать','approveEstimate','soft','data-id="'+safe(e.id)+'"'))+'</div>';
 }}
 return out;
 }
@@ -99,6 +99,7 @@ switch(action){
 case 'newProject':title='Новый объект';fields=f('Название объекта','title','text','',true)+f('Заказчик','client')+f('Адрес','address');break;
 case 'newEstimate':title='Новая смета';fields=f('Название сметы','title','text','',true);break;
 case 'newLine':{const rates=state.rates;title='Добавить работу';fields=f('Помещение / раздел','room','text','Общие работы',true)+f('Название работы','name','text','',true)+f('Объём','quantity','text','',true)+select('Единица','unit',['м²','м.п.','шт.','компл.'].map(u=>[u,u]))+select('Утверждённая расценка','rateId',[['','— Цена отсутствует —'],...rates.map(r=>[r.id,r.title+' · '+r.unit+' · '+money(r.priceCents)])]);break}
+case 'assignRate':{const e=getEstimate(x,window.__estimateId);const line=e?.items.find(i=>i.id===id);assert(line,'Работа не найдена');const rates=state.rates.filter(r=>r.unit===line.unit);assert(rates.length,'Нет утверждённой расценки с такой единицей. Добавь её в справочник.');title='Назначить расценку';fields='<div class="formgroup full"><div class="info">'+safe(line.name)+' · '+fmt(line.qtyMilli)+' '+safe(line.unit)+'</div></div>'+select('Утверждённая расценка','rateId',rates.map(r=>[r.id,r.title+' · '+money(r.priceCents)]));break}
 case 'newRate':title='Добавить утверждённую расценку';fields=f('Вид работы','title','text','',true)+select('Единица','unit',['м²','м.п.','шт.','компл.'].map(u=>[u,u]))+f('Цена за единицу, ₽','price','text','',true)+'<div class="formgroup full"><label class="check"><input type="checkbox" name="approved" required> Подтверждаю: эта расценка уже утверждена, её можно использовать в сметах.</label></div>';break;
 case 'newExpense':title='Фактический расход';fields=f('Наименование','title','text','',true)+select('Категория','category',['Материалы','Работа','Подрядчики','Доставка','Прочее'].map(z=>[z,z]))+f('Сумма, ₽','amount','text','',true)+f('Дата','date','date',today(),true);break;
 case 'newPayment':title='Поступившая оплата';fields=f('Сумма, ₽','amount','text','',true)+f('Дата','date','date',today(),true)+f('Комментарий','note');break;
@@ -116,10 +117,12 @@ modal.showModal();setTimeout(()=>modal.querySelector('.input,.textarea')?.focus(
 function submit(ev){
 ev.preventDefault();
 const action=modal.dataset.kind,id=modal.dataset.itemid,d=new FormData(ev.target),v=k=>String(d.get(k)||'');
+const before=clone(state);
 try{
 if(action==='newProject'){const x=newProject(state,v('title'),v('client'),v('address'));activeId=x.id;view='project';tab='overview'}
 if(action==='newEstimate'){newEstimate(p(),v('title'));tab='estimates'}
 if(action==='newLine'){addLine(state,p(),getEstimate(p(),id),v('room'),v('name'),v('quantity'),v('unit'),v('rateId'));tab='estimates';window.__estimateId=id}
+if(action==='assignRate')assignRate(state,getEstimate(p(),window.__estimateId),id,v('rateId'));
 if(action==='newRate')addRate(state,v('title'),v('unit'),v('price'),d.has('approved'));
 if(action==='newExpense')addExpense(p(),v('title'),v('category'),v('amount'),v('date'));
 if(action==='newPayment')addPayment(p(),v('amount'),v('note'),v('date'));
@@ -128,7 +131,7 @@ if(action==='newAct')addAct(p(),v('estimateId'),v('amount'),v('number'));
 if(action==='newTask')addTask(p(),v('title'),v('due'));
 if(action==='editNote')p().notes=v('notes');
 save();modal.close();notify('Сохранено');
-}catch(e){notify(e.message,true)}
+}catch(e){state=before;render();notify(e.message,true)}
 }
 function backup(){
 try{const raw=localStorage.getItem(STORE)||JSON.stringify(state);const blob=new Blob([raw],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='StroyCRM-backup-'+today()+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);notify('Резервная копия сохранена')}catch(e){notify(e.message,true)}
@@ -139,7 +142,8 @@ if(act==='nav'){view=el.dataset.view;render();return}
 if(act==='goProjects'){view='projects';render();return}
 if(act==='openProject'){activeId=id;view='project';tab='overview';window.__estimateId=null;render();return}
 if(act==='tab'){tab=el.dataset.tab;render();return}
-if(['newProject','newEstimate','newRate','newExpense','newPayment','reversePayment','newAct','newTask','editNote','newLine'].includes(act)){if(act==='newAct'&&!p().estimates.some(e=>e.approved))return notify('Сначала согласуй смету',true);form(act,id);return}
+if(act==='removeLine'){if(!confirm('Удалить строку черновика?'))return;attempt(()=>removeLine(getEstimate(p(),el.dataset.estimate),id));return}
+if(['newProject','newEstimate','newRate','newExpense','newPayment','reversePayment','newAct','newTask','editNote','newLine','assignRate'].includes(act)){if(act==='newAct'&&!p().estimates.some(e=>e.approved))return notify('Сначала согласуй смету',true);try{form(act,id)}catch(e){notify(e.message,true)}return}
 if(act==='openEstimate'){window.__estimateId=id;render();return}
 if(act==='approveEstimate'){attempt(()=>approveEstimate(getEstimate(p(),id)));return}
 if(act==='toggleTask'){attempt(()=>{const t=p().tasks.find(x=>x.id===id);assert(t,'Задача не найдена');t.done=!t.done});return}
