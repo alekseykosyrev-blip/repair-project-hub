@@ -1,5 +1,25 @@
-const CACHE_NAME='repair-project-hub-v11';
-const APP_SHELL=['./','./index.html','./styles.css','./dashboard.css','./finance.css','./finance-center-v2.css','./ux-green.css','./measurements.css','./manifest.webmanifest','./icon.svg','./app1.js','./app2.js','./app3.js','./app4.js','./app5.js','./app6.js','./app7.js','./app8.js','./app9.js','./app10.js','./app11.js','./app12.js','./app13.js','./app14.js','./app15.js','./app16.js','./app17.js','./app18.js','./app19.js','./app20.js','./app21.js','./app22.js','./app23.js','./app24.js','./field-actions.js','./measurements.js','./estimator-bridge.js'];
-self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(CACHE_NAME);await Promise.all(APP_SHELL.map(async url=>{try{await cache.add(url)}catch(error){console.warn('Cache miss during install',url,error)}}));await self.skipWaiting()})())});
-self.addEventListener('activate',event=>{event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(key=>key!==CACHE_NAME).map(key=>caches.delete(key)));await self.clients.claim()})())});
-self.addEventListener('fetch',event=>{const req=event.request;if(req.method!=='GET')return;const url=new URL(req.url);if(req.mode==='navigate'){event.respondWith((async()=>{try{const fresh=await fetch(req);const cache=await caches.open(CACHE_NAME);cache.put('./index.html',fresh.clone());return fresh}catch{return(await caches.match(req,{ignoreSearch:true}))||(await caches.match('./index.html'))||(await caches.match('./'))}})());return}if(url.origin===self.location.origin){event.respondWith((async()=>{const cached=await caches.match(req,{ignoreSearch:true});const network=fetch(req).then(async fresh=>{if(fresh&&fresh.ok){const cache=await caches.open(CACHE_NAME);const normalized=new Request(url.origin+url.pathname,{method:'GET',headers:req.headers,mode:'same-origin',credentials:req.credentials,redirect:'follow'});cache.put(normalized,fresh.clone())}return fresh}).catch(()=>null);return cached||(await network)||Response.error()})());return}event.respondWith((async()=>{const cached=await caches.match(req);if(cached)return cached;try{const fresh=await fetch(req);if(fresh){const cache=await caches.open(CACHE_NAME);cache.put(req,fresh.clone())}return fresh}catch{return Response.error()}})())});
+const CACHE='stroycrm-v2-1';
+const SHELL=['./','./index.html','./crm.css','./crm-app.mjs','./crm-core.mjs','./manifest.webmanifest','./icon.svg'];
+self.addEventListener('install',event=>{
+  event.waitUntil((async()=>{const c=await caches.open(CACHE);await c.addAll(SHELL);await self.skipWaiting()})());
+});
+self.addEventListener('activate',event=>{
+  event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)));await self.clients.claim()})());
+});
+self.addEventListener('fetch',event=>{
+  const req=event.request;if(req.method!=='GET')return;
+  const url=new URL(req.url);if(url.origin!==self.location.origin)return;
+  if(req.mode==='navigate'){
+    event.respondWith((async()=>{
+      try{const response=await fetch(req);if(response.ok){const c=await caches.open(CACHE);c.put(req,response.clone())}return response}
+      catch{return await caches.match(req)||await caches.match('./index.html')||Response.error()}
+    })());return;
+  }
+  event.respondWith((async()=>{
+    const cached=await caches.match(req);
+    if(cached)return cached;
+    const response=await fetch(req);
+    if(response.ok){const c=await caches.open(CACHE);c.put(req,response.clone())}
+    return response;
+  })());
+});
