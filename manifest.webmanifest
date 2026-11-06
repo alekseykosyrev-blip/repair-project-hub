@@ -1,13 +1,13 @@
 {
-  "name": "Мои ремонтные проекты",
-  "short_name": "Ремонтные проекты",
-  "description": "Локальный рабочий центр по объектам, задачам, сметам, оплатам и расходам.",
+  "name": "СтройCRM — управление объектами",
+  "short_name": "СтройCRM",
+  "description": "Управление объектами, согласованными сметами, актами, расходами и оплатами",
   "lang": "ru",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f2f7f3",
-  "theme_color": "#173528",
+  "background_color": "#f3f6f3",
+  "theme_color": "#142e25",
   "icons": [
     {
       "src": "icon.svg",
