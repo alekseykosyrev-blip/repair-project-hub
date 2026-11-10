@@ -1,12 +1,257 @@
 <!doctype html>
-<html lang="ru"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#142e25"><meta name="description" content="Рабочая система управления строительными объектами, сметами, финансами и задачами">
-<title>СтройCRM · Объекты и финансы</title>
-<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="stylesheet" href="crm.css">
-</head><body>
-<div id="app"><div style="padding:28px;font:16px Arial;color:#254b34">Загружаем рабочую систему…</div></div>
-<dialog id="modal" class="modal"></dialog><input id="importFile" type="file" accept=".json,application/json" hidden>
-<div id="toast" role="status" aria-live="polite"></div>
-<script type="module" src="crm-app.mjs"></script>
-</body></html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f5f1">
+<meta name="description" content="Речь руководителя — ежедневный тренажёр строительной и управленческой терминологии.">
+<title>Речь руководителя — тренажёр</title>
+<style>
+:root{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#1b2526;background:#f6f5f1;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0;min-height:100vh}button,input,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:default;opacity:.55}
+.shell{width:min(810px,calc(100% - 36px));margin:auto;padding:28px 0 76px}
+.top{display:flex;align-items:center;gap:11px;margin-bottom:60px}.logo{display:grid;place-items:center;width:38px;height:38px;background:#213f3a;border-radius:12px;color:white;font-size:16px;font-weight:750}.topname{font-size:15px;font-weight:750;letter-spacing:-.03em}.subname{font-size:12px;color:#747b79;margin-top:2px}
+.eyebrow{font-size:11px;font-weight:750;color:#648077;text-transform:uppercase;letter-spacing:.15em}
+h1{font-size:clamp(32px,6vw,51px);line-height:1.09;letter-spacing:-.055em;margin:13px 0 14px;font-weight:780}
+.lead{font-size:16px;color:#66716d;line-height:1.6;max-width:590px;margin:0 0 30px}
+button.primary{background:#24493f;border:1px solid #24493f;color:white;border-radius:13px;font-weight:700;padding:16px 24px;min-height:52px;box-shadow:0 7px 22px rgba(26,63,50,.12)}button.primary:not(:disabled):hover{background:#17392e}
+button.secondary{background:white;border:1px solid #e1e5de;border-radius:12px;color:#25352f;font-weight:650;padding:12px 16px}
+button.link{background:none;border:0;color:#697a70;font-size:14px;font-weight:650;padding:12px 0}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #abc8bd;outline-offset:3px}
+.big{width:100%}.grid-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:32px 0}
+.stat{background:white;border:1px solid #e7e8e3;border-radius:15px;padding:18px 17px}.stat .val{font-size:29px;letter-spacing:-.06em;font-weight:760}.stat .label{color:#74807a;font-size:12px;margin-top:7px}
+.section-title{font-size:15px;font-weight:760;margin:32px 0 13px;letter-spacing:-.015em}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.mode{border:1px solid #e5e7e1;background:#fff;border-radius:14px;text-align:left;padding:15px;min-height:83px;transition:background .15s,border-color .15s}
+.mode b{display:block;font-size:15px}.mode small{color:#77817d;display:block;margin-top:7px;line-height:1.3}
+.mode.active{border-color:#305648;background:#eff5ef;box-shadow:inset 0 0 0 1px #305648}
+.status{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:12px;color:#78817b;margin:0 0 13px}
+.track{height:6px;background:#e3e6df;border-radius:30px;overflow:hidden;margin-bottom:28px}.bar{background:#577f6b;height:100%;border-radius:30px;transition:width .3s}
+.panel{border:1px solid #e7e9e3;border-radius:22px;background:white;box-shadow:0 14px 45px rgba(50,65,50,.045);padding:clamp(22px,5vw,39px)}
+.topic{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:#73877a;font-weight:750}
+.qtitle{font-size:clamp(22px,4vw,30px);line-height:1.3;letter-spacing:-.035em;font-weight:720;margin:20px 0 20px}
+.context{font-size:14px;color:#747e77;line-height:1.6;margin:12px 0 23px}
+.answers{display:grid;gap:10px}.option{text-align:left;background:#fafbf9;border:1px solid #e5e8e1;border-radius:12px;padding:14px 15px;line-height:1.4;min-height:51px;color:#25342d}
+.option:hover:not(:disabled){border-color:#91a99b;background:#f1f7f1}.option.right{background:#eef7f0;border-color:#76aa89}.option.wrong{background:#fff2ef;border-color:#d9a195}
+.entry{width:100%;background:#fafbf9;border:1px solid #d9dfd8;border-radius:12px;padding:15px 16px;min-height:56px;font-size:18px;color:#24382f}.entry.area{font-size:16px;resize:vertical;min-height:100px;line-height:1.5}
+.feedback{margin-top:20px;border-top:1px solid #e9ebe7;padding-top:20px;line-height:1.6;font-size:14px;color:#53645b}
+.feedback b{color:#28483a}.feedback .reply{font-size:18px;font-weight:700;color:#233b30;display:block;margin-top:9px}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:24px}
+.bottomline{margin-top:18px;color:#829087;font-size:12px;line-height:1.55}
+.weak{display:flex;flex-wrap:wrap;gap:8px}.pill{background:#eaf0ea;border:1px solid #dbe5dd;border-radius:100px;padding:9px 12px;font-size:13px;color:#385344}
+.mini{font-size:13px;color:#66736c;line-height:1.6}
+.end{text-align:center;padding:20px 0}.end h1{font-size:39px}
+#notice{position:fixed;bottom:15px;right:15px;max-width:320px;border-radius:12px;padding:12px 16px;background:#23483b;color:white;font-size:13px;z-index:20;display:none}
+@media(max-width:540px){.shell{width:calc(100% - 28px);padding-top:19px}.top{margin-bottom:34px}.grid-stats{grid-template-columns:1fr 1fr;gap:8px}.stat{padding:14px}.stat .val{font-size:24px}.modes{grid-template-columns:1fr 1fr}.mode{padding:13px;min-height:76px}.panel{border-radius:18px}.actions .primary{flex:1}.topname{font-size:14px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="shell">
+<header class="top"><div class="logo">Р</div><div><div class="topname">Речь руководителя</div><div class="subname">Строительство · управление · словарь</div></div></header>
+<div id="app" aria-live="polite"></div>
+</main>
+<div id="notice" role="status"></div>
+<script>
+(function(){
+"use strict";
+const TERMS=[
+["Регламент","Управление","Установленный порядок организации процесса: участники, этапы и правила взаимодействия.","Порядок взаимодействия с субподрядчиками описан в ___ проекта.","регламенте,регламент","Не путай с инструкцией: регламент определяет правила процесса, инструкция описывает конкретные действия."],
+["Инструкция","Управление","Документ, определяющий действия и последовательность выполнения конкретной задачи.","Порядок обслуживания аппарата указан в ___ производителя.","инструкции,инструкция","Инструкция отвечает прежде всего на вопрос, как выполнять действие."],
+["Делегирование","Управление","Передача задачи и необходимых полномочий другому исполнителю при сохранении ответственности руководителя за организацию результата.","Я ___ контроль поставки материалов мастеру участка.","делегировал,делегирую,делегировала","Делегирование — не просто просьба помочь: человек получает полномочия для исполнения."],
+["Полномочия","Управление","Право принимать определённые решения и совершать действия в пределах своей роли.","Для подписания акта у сотрудника должны быть соответствующие ___.","полномочия,полномочий","Обязанность означает, что должен сделать; полномочие — что вправе решить."],
+["Зона ответственности","Управление","Круг задач и результатов, за которые отвечает определённый участник.","Проверка готовности помещений входит в ___ ответственности прораба.","зону,зоне","Точное распределение ответственности снижает риск, что задача останется без исполнителя."],
+["Координация","Управление","Согласование действий нескольких участников для достижения общего результата.","Для одновременной работы маляров и электриков нужна ___ подрядчиков.","координация,координации","Координация — не только контроль, но и согласование действий."],
+["Эскалация вопроса","Управление","Передача нерешённого вопроса на более высокий уровень полномочий для принятия решения.","Если спор нельзя решить на участке, требуется ___ вопроса руководителю проекта.","эскалация,эскалации","Эскалация не равна конфликту: это установленный способ привлечения уполномоченного лица."],
+["Приоритет","Управление","Степень важности задачи относительно других при ограниченных ресурсах.","Сначала закрываем участок, влияющий на сдачу объекта: это наш главный ___.","приоритет,приоритета","Приоритет помогает распределить время и ресурсы."],
+["Регламент приёмки","Управление","Установленный порядок предъявления и проверки выполненных работ участниками.","Последовательность внутренних и внешних проверок фиксируем в ___ приёмки.","регламенте,регламент","Не заменяет технические критерии качества."],
+["Критерии приёмки","Управление","Согласованные условия и признаки, по которым результат работ признают соответствующим требованиям.","Спор по качеству решаем по заранее согласованным ___ приёмки.","критериям,критериях,критерии","Требования должны быть определены, а не зависеть только от личного впечатления."],
+["Фронт работ","Планирование","Подготовленный участок или объём, доступный исполнителям для начала необходимых операций.","Электрики не завершили монтаж, поэтому ___ работ для маляров не готов.","фронт,фронта","Термин обозначает готовность участка, а не просто общий объём заказа."],
+["Мобилизация","Планирование","Вывод людей, материалов, техники и организационных ресурсов на объект для начала работ.","Вывод дополнительной бригады на объект — это ___ персонала.","мобилизация,мобилизации","Учитывай время на подготовку рабочих мест и доставку инструмента."],
+["График производства работ","Планирование","Документ с последовательностью и сроками выполнения работ и их взаимосвязями.","Фактическое отставание сравниваем с ___ производства работ.","графиком,графика","График — не просто список задач, а привязка работ ко времени."],
+["Критический путь","Планирование","Последовательность зависимых операций, определяющая минимально возможную длительность проекта.","Задержка операции на критическом ___ может сдвинуть срок завершения.","пути,путь","Критичность определяется влиянием на итоговый срок, не стоимостью работы."],
+["Этапность","Планирование","Разделение объёма работ на логически связанные этапы с промежуточными результатами.","Приёмку помещений проведём по ___ выполнения работ.","этапам,этапности","Этапность отвечает на вопрос о последовательных частях процесса, а график — о датах."],
+["Захватка","Планирование","Часть фронта работ, выделенная для выполнения определённого комплекса операций.","Маляры закончили шпаклевание на первой ___ этажа.","захватке,захватку,захватки","Захватки позволяют организовать поточное выполнение работ."],
+["Смежные работы","Планирование","Работы разных исполнителей, технологически или организационно связанные между собой.","Пуск окраски зависит от готовности ___ работ по электрике.","смежных,смежные","Смежные подрядчики влияют на готовность фронта работ."],
+["Ресурсное планирование","Планирование","Определение потребности в людях, материалах, оборудовании и времени для выполнения задач.","Распределение бригад и аппаратов на неделю — часть ___ планирования.","ресурсного,ресурсное","Недостаток ресурсов может сдвигать сроки даже при готовом фронте."],
+["План-факт","Планирование","Сопоставление запланированных и фактически достигнутых показателей.","Для выявления отставания подготовим еженедельный ___ по объёмам.","план-факт,план факт","Сравнивают не только сроки, но и объёмы, затраты и выработку."],
+["Производительность труда","Планирование","Объём выполненной работы в расчёте на единицу времени или трудовых затрат.","Для сравнения бригад рассчитаем ___ труда в м² на человеко-день.","производительность,производительности","Больше работников не всегда означает пропорционально большую выработку."],
+["Исполнительная документация","Документы","Комплект документов, отражающих фактическое выполнение и подтверждение строительных работ.","К сдаче скрытых работ подготовим комплект ___ документации.","исполнительной,исполнительная","Не путай с проектной документацией: она описывает предусмотренное решение."],
+["Дефектная ведомость","Документы","Документ с перечнем выявленных дефектов, участками и предполагаемыми объёмами устранения.","После осмотра составим дефектную ___.","ведомость,ведомости","Фиксируй конкретный участок и характер несоответствия."],
+["ППР","Документы","Проект производства работ: документ по организации и технологии строительных работ в конкретных условиях.","Организация монтажа лесов описана в ___.","ппр,проекте производства работ","ППР охватывает организацию производства работ; технологическая карта — отдельный процесс."],
+["Технологическая карта","Документы","Документ, описывающий порядок и условия выполнения конкретного строительного процесса.","Последовательность нанесения слоёв приведена в технологической ___.","карте,карта","В карте могут быть операции, материалы, средства контроля и требования безопасности."],
+["АОСР","Документы","Акт освидетельствования скрытых работ: оформление проверки работ до их закрытия последующими процессами.","Результат осмотра гидроизоляции до стяжки оформляют ___.","аоср,актом освидетельствования скрытых работ","Не всякий акт приёмки является АОСР."],
+["Акт приёмки","Документы","Документальное подтверждение приёмки определённого результата работ уполномоченными сторонами.","После согласованной проверки стороны оформляют акт ___.","приемки,приёмки","Конкретные формы документов и основания оплаты зависят от договора."],
+["Предписание","Документы","Обязательное для адресата требование уполномоченного лица устранить нарушение или выполнить действие в пределах его полномочий.","Официальные замечания надзора могут быть оформлены ___.","предписанием,предписание","Не каждый список замечаний имеет статус предписания."],
+["Согласование","Документы","Получение необходимого одобрения решения или изменения у уполномоченных сторон.","Замену системы подготовки поверхности направляем на ___ заказчику.","согласование,согласования","Согласование лучше документировать до изменения работ."],
+["Входной контроль","Качество","Проверка поступающих материалов и изделий на соответствие требованиям до применения.","Проверку новой партии шпаклёвки при поставке относим к ___ контролю.","входному,входной","Проводится до использования материалов."],
+["Операционный контроль","Качество","Проверка соблюдения требований во время выполнения технологических операций.","Проверка поверхности после каждого слоя — пример ___ контроля.","операционного,операционный","Позволяет обнаружить дефекты до финальной приёмки."],
+["Приёмочный контроль","Качество","Проверка готового результата работы на соответствие установленным требованиям.","Итоговую проверку подготовленных стен называем ___ контролем.","приёмочным,приемочным,приёмочный","Не заменяет входной и операционный контроль."],
+["Несоответствие","Качество","Установленное отклонение результата или процесса от определённого требования.","Отклонение от согласованной технологии зафиксировано как ___.","несоответствие,несоответствия","Не подменяй требование субъективным «нравится / не нравится»."],
+["Корректирующие действия","Качество","Меры, направленные на устранение причины выявленного несоответствия и предотвращение повторения.","После анализа повторяющихся ошибок назначены ___ действия.","корректирующие,корректирующих","Исправить дефект и устранить причину его повторения — разные задачи."],
+["Технологическая выдержка","Качество","Промежуток времени, необходимый материалу для достижения состояния перед следующей операцией.","Перед шлифованием соблюдаем необходимую технологическую ___.","выдержку,выдержка,выдержки","Реальные сроки и условия определяются материалом и инструкцией производителя."],
+["Себестоимость","Финансы","Совокупность затрат, относимых на выполнение определённого объёма работ или выпуск продукта.","При расчёте цены оцениваем ___ работ с учётом необходимых затрат.","себестоимость,себестоимости","Не путай себестоимость с ценой продажи или прибылью."],
+["Накладные расходы","Финансы","Затраты на организацию и обеспечение деятельности, не относимые напрямую к единичной операции.","Затраты на офис и управление относят к ___ расходам.","накладным,накладные","При расчёте объекта учитывают порядок распределения накладных расходов."],
+["Маржинальность","Финансы","Доля маржинального дохода в выручке, обычно выраженная в процентах.","При росте прямых переменных затрат ___ договора снижается.","маржинальность,маржинальности","Не тождественна чистой рентабельности бизнеса."],
+["Рентабельность","Финансы","Относительный показатель прибыльности, рассчитываемый как отношение выбранного показателя прибыли к выбранной базе.","Для оценки прибыльности проекта рассчитаем его ___.","рентабельность,рентабельности","Нужно уточнять, относительно какой базы считается процент."],
+["Кассовый разрыв","Финансы","Временный недостаток доступных денег для платежей при несовпадении сроков поступлений и расходов.","Заказчик задержал оплату, а зарплату нужно выплатить: возник кассовый ___.","разрыв,разрыва","Прибыльный на бумаге проект может испытывать кассовый разрыв."],
+["Резерв на риски","Финансы","Планируемые дополнительные средства на покрытие определённых неопределённостей и рисков.","В бюджете проекта предусмотрим ___ на риски.","резерв,резерва","Не означает разрешение произвольно тратить деньги."],
+["Договорные обязательства","Финансы","Обязанности сторон, предусмотренные действующим договором.","Порядок и сроки оплаты определяются ___ обязательствами.","договорными,договорные","Условия договора нельзя заменять устной привычкой расчётов."],
+["Протокол совещания","Коммуникация","Документ, фиксирующий обсуждённые вопросы, принятые решения, ответственных и сроки.","Итоги встречи с подрядчиками внесём в ___ совещания.","протокол,протоколе","Важно фиксировать решения, а не только перечислять темы."],
+["Конкретизация замечаний","Коммуникация","Уточнение общих претензий до проверяемых фактов, участков и требований.","Вместо спора о вкусе нужна ___ замечаний заказчика.","конкретизация,конкретизации","Покажи место, характер дефекта и критерий, которому оно не соответствует."],
+["Распределение полномочий","Коммуникация","Закрепление за участниками прав самостоятельно принимать определённые решения.","Перед делегированием согласуем ___ полномочий между прорабами.","распределение,распределения","Задача без достаточных полномочий может оказаться невыполнимой."],
+["Срок исполнения","Коммуникация","Установленный момент или период, к которому задача должна быть выполнена.","В поручении укажем ответственного и ___ исполнения.","срок,сроки","Фраза «как можно скорее» не заменяет определённый срок."],
+["Фиксация договорённостей","Коммуникация","Документальное или иное проверяемое закрепление согласованных действий и обязанностей.","После совещания необходима ___ договорённостей с подрядчиками.","фиксация,фиксации","Договорённости должны быть понятны участникам и доступны для проверки."]
+];
+const PHRASES=[
+["Сначала стены смотрит Давид, потом я, потом заказчик.","Приёмка работ проводится поэтапно: первичный контроль — у мастера, повторный — у руководителя, затем предъявление заказчику.","Регламент приёмки"],
+["Электрики ещё не закончили, поэтому малярам работать негде.","Фронт малярных работ не готов из-за незавершённых смежных работ.","Фронт работ"],
+["Пусть Женя сам решит вопрос с материалами, но отчитается мне.","Делегирую мастеру организацию поставки материалов с согласованными полномочиями и сроком отчётности.","Делегирование"],
+["Ребята сделали не так, как у нас было договорено.","Выявлено несоответствие согласованной технологии выполнения работ.","Несоответствие"],
+["На встрече договорились, а потом все забыли кто что делает.","Решения, ответственных и сроки исполнения фиксируем в протоколе совещания.","Протокол совещания"],
+["Нам нужно побольше людей и инструмента, чтобы начать десять комнат.","Для открытия дополнительных помещений организуем мобилизацию персонала и оборудования.","Мобилизация"],
+["Надо понять, почему мы не успеваем к сроку.","Проведём план-фактный анализ сроков и объёмов работ.","План-факт"],
+["Пусть заказчик покажет, что именно ему не нравится.","Предлагаю конкретизировать замечания и сверить их с критериями приёмки.","Конкретизация замечаний"],
+["Давайте разойдёмся по комнатам, чтобы друг другу не мешать.","Согласуем зонирование и очерёдность смежных работ по помещениям.","Смежные работы"],
+["Работа стоит, потому что не привезли всё нужное.","Простой связан с недостаточным ресурсным обеспечением участка.","Ресурсное планирование"],
+["Нужно глянуть материалы, когда они приедут.","Организуем входной контроль материалов при поставке.","Входной контроль"],
+["Эти косяки всплывают постоянно, надо понять почему.","Необходимо определить причины повторяющихся несоответствий и назначить корректирующие действия.","Корректирующие действия"],
+["Там уже не наши решения, пусть Стас разбирается.","Вопрос выходит за пределы моих полномочий; передаю его на решение руководителю.","Полномочия"],
+["У нас есть деньги на бумаге, но рабочим сейчас платить нечем.","Возник кассовый разрыв из-за несовпадения сроков поступлений и обязательных выплат.","Кассовый разрыв"],
+["Здесь работы побольше, чем мы раньше считали.","Фактический объём работ превышает ранее согласованный объём; требуется уточнение расчёта.","Зона ответственности"]
+];
+const app=document.getElementById("app");
+const KEY="rukovoditel-trainer-v1";
+const today=()=>new Date().toLocaleDateString("sv-SE");
+const norm=s=>String(s||"").toLowerCase().trim().replaceAll("ё","е").replace(/[.,!?;:]/g,"").replace(/\s+/g," ");
+const safe=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let data={version:1,history:[],sequence:0};
+try{const d=JSON.parse(localStorage.getItem(KEY)||"null");if(d&&Array.isArray(d.history)){data=d;data.sequence=Number(data.sequence)||0;}}catch(e){}
+const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}};
+let selectedMode="mix",session=null,current=null,lastKeys=[];
+const labelMode={mix:"Смешанная тренировка",quiz:"Выбери термин",fill:"Вставь слово",card:"Карточка",phrase:"Точная формулировка"};
+function historyOf(id){return data.history.filter(a=>a.id===id)}
+function analysis(){
+ const auto=data.history.filter(a=>a.type==="quiz"||a.type==="fill");
+ const correct=auto.filter(a=>a.ok).length;
+ const weak=TERMS.map(t=>({term:t[0],bad:historyOf(t[0]).filter(x=>!x.ok).length,good:historyOf(t[0]).filter(x=>x.ok).length})).filter(x=>x.bad>x.good).sort((a,b)=>(b.bad-b.good)-(a.bad-a.good));
+ const count=data.history.filter(a=>a.day===today()).length;
+ let streak=0;const dates=new Set(data.history.map(a=>a.day));const d=new Date();if(!dates.has(d.toLocaleDateString("sv-SE")))d.setDate(d.getDate()-1);
+ while(dates.has(d.toLocaleDateString("sv-SE"))){streak++;d.setDate(d.getDate()-1)}
+ return{count,total:data.history.length,accuracy:auto.length?Math.round(correct/auto.length*100):null,weak,streak};
+}
+function renderHome(){
+ session=null;current=null;
+ const s=analysis();const done=Math.min(100,Math.round(s.count/12*100));
+ app.innerHTML='<div class="eyebrow">Ежедневная практика · 10–15 минут</div><h1>Говори точнее.<br>Руководи увереннее.</h1>'+
+ '<p class="lead">Тренируй строительные термины и короткие профессиональные формулировки. Ошибки возвращаются на повторение, а сложность постепенно растёт.</p>'+
+ '<button class="primary big" data-action="start">'+(s.count>=12?"Продолжить · ещё 5 заданий":s.total?"Продолжить тренировку":"Начать стартовый тест")+'</button>'+
+ '<div class="grid-stats"><div class="stat"><div class="val">'+s.count+'<span style="font-size:14px;color:#a1aaa4"> / 12</span></div><div class="label">Сегодня</div></div>'+
+ '<div class="stat"><div class="val">'+(s.accuracy===null?"—":s.accuracy+"%")+'</div><div class="label">Точность тестов</div></div>'+
+ '<div class="stat"><div class="val">'+s.weak.length+'</div><div class="label">На повторение</div></div>'+
+ '<div class="stat"><div class="val">'+s.streak+'</div><div class="label">Дней подряд</div></div></div>'+
+ '<div class="section-title">Режим занятий</div>'+
+ '<div class="modes">'+
+ modeButton("mix","Смешанная","Все упражнения по очереди")+
+ modeButton("fill","Вспомнить слово","Ввести термин без подсказок")+
+ modeButton("quiz","Выбрать термин","Четыре близких варианта")+
+ modeButton("phrase","Сказать профессионально","Коротко сформулировать мысль")+
+ modeButton("card","Карточки","Вспомнить определение")+
+ '</div>'+
+ (s.weak.length?'<div class="section-title">Стоит повторить</div><div class="weak">'+s.weak.slice(0,5).map(x=>'<span class="pill">'+safe(x.term)+'</span>').join("")+'</div>':"")+
+ '<p class="bottomline">Результаты сохраняются только в этом браузере. Новые задания подбираются сразу по твоим ответам — без ожидания обновления. Можно заниматься в любое время.</p>';
+}
+function modeButton(id,title,detail){
+ return '<button class="mode '+(selectedMode===id?"active":"")+'" data-mode="'+id+'"><b>'+title+'</b><small>'+detail+'</small></button>';
+}
+function modeOfNext(){
+ if(selectedMode!=="mix")return selectedMode;
+ return ["fill","quiz","phrase","card","fill","quiz"][session.n%6];
+}
+function scoreFor(id){
+ const h=historyOf(id),bad=h.filter(x=>!x.ok).length,good=h.filter(x=>x.ok).length,last=h.length?h[h.length-1]:null;
+ const recent=lastKeys.includes(id)?-90:0;
+ return (last&&!last.ok?55:0)+(bad-good)*18+(!h.length?25:0)+(last&&last.ok?-h.length:0)+recent+Math.random()*12;
+}
+function pickNext(){
+ const type=modeOfNext();let item=null;
+ if(type==="phrase"){
+ const candidates=PHRASES.map((p,i)=>({type,id:p[2],key:"p"+i,phrase:p,score:scoreFor(p[2])+Math.random()*4}));
+ candidates.sort((a,b)=>b.score-a.score);item=candidates.find(x=>!lastKeys.includes(x.key))||candidates[0];
+ }else{
+ const candidates=TERMS.map((t,i)=>({type,id:t[0],key:t[0],term:t,score:scoreFor(t[0])+(i%4)*.1}));
+ candidates.sort((a,b)=>b.score-a.score);item=candidates[0];
+ }
+ current={...item,done:false,revealed:false,input:"",ok:false,choice:null};
+ lastKeys=[...lastKeys,item.key].slice(-4);
+}
+function start(){
+ session={n:0,limit:analysis().count>=12?5:analysis().total===0?6:Math.max(12-analysis().count,5),correct:0};
+ lastKeys=[];pickNext();renderTask();
+}
+function renderTask(){
+ const q=current;if(!q){renderEnd();return}
+ const t=q.term;const frac=Math.round(session.n/session.limit*100);
+ let content="";
+ if(q.type==="quiz"){
+ const target=t[0]; let options=TERMS.filter(x=>x[0]!==target&&x[1]===t[1]).sort(()=>Math.random()-.5).slice(0,3);
+ if(options.length<3)options=options.concat(TERMS.filter(x=>x[0]!==target&&x[1]!==t[1]).slice(0,3-options.length));
+ const choices=[target,...options.map(x=>x[0])].sort(()=>Math.random()-.5);
+ if(!q.options)q.options=choices;
+ content='<div class="topic">Найди точный термин · '+safe(t[1])+'</div><div class="qtitle">'+safe(t[2])+'</div><div class="answers">'+q.options.map(x=>'<button class="option '+(q.done?(x===target?"right":x===q.choice?"wrong":""):"")+'" '+(q.done?"disabled":"")+' data-answer="'+safe(x)+'">'+safe(x)+'</button>').join("")+'</div>';
+ }else if(q.type==="fill"){
+ const parts=t[3].split("___");
+ content='<div class="topic">Вспомни термин · '+safe(t[1])+'</div><div class="qtitle">'+safe(parts[0])+'<span style="border-bottom:2px solid #9bae9b;color:#47684f"> '+(q.done?safe(t[4].split(",")[0]):"______")+' </span>'+safe(parts[1]||"")+'</div>'+
+ (!q.done?'<form id="fill-form"><input class="entry" name="answer" placeholder="Введи слово или выражение" autocomplete="off" autofocus required><div class="actions"><button class="primary big" type="submit">Проверить</button></div></form>':"");
+ }else if(q.type==="card"){
+ content='<div class="topic">Карточка · '+safe(t[1])+'</div><div class="qtitle">'+safe(t[2])+'</div>'+
+ (q.revealed?'<div class="feedback"><div>Ответ:</div><span class="reply">'+safe(t[0])+'</span><p>'+safe(t[5])+'</p><div class="actions"><button class="secondary" data-rate="false">Нужно повторить</button><button class="primary" data-rate="true">Знаю</button></div></div>':'<div class="actions"><button class="primary" data-action="reveal">Показать термин</button></div>');
+ }else if(q.type==="phrase"){
+ content='<div class="topic">Сформулируй профессионально</div><div class="qtitle">«'+safe(q.phrase[0])+'»</div><p class="context">Напиши свою короткую формулировку. Дословного совпадения не требуется.</p>'+
+ (!q.revealed?'<form id="phrase-form"><textarea class="entry area" name="answer" placeholder="Твой вариант..." required></textarea><div class="actions"><button class="primary big" type="submit">Сравнить с примером</button></div></form>':
+ '<div class="feedback"><div>Пример точной формулировки:</div><span class="reply">'+safe(q.phrase[1])+'</span><p>Опорный термин: <b>'+safe(q.phrase[2])+'</b></p><p class="mini">Смысл сохранён, выражение точнее и короче? Отметь сам. Автоматическая оценка свободного текста здесь не выдаётся за экспертную.</p><div class="actions"><button class="secondary" data-rate="false">Нужно повторить</button><button class="primary" data-rate="true">Получилось</button></div></div>');
+ }
+ if(q.done){
+ const title=q.ok?"Верно — закрепляем":"Нужно повторить";
+ const answer=q.type==="quiz"?t[0]:t[4].split(",")[0];
+ content+='<div class="feedback"><b>'+title+'</b><span class="reply">'+safe(answer)+'</span><div>'+safe(t[5])+'</div></div><div class="actions"><button class="primary big" data-action="next">Следующее задание</button></div>';
+ }
+ app.innerHTML='<div class="status"><span>'+labelMode[q.type]+'</span><span>'+(session.n+1)+' / '+session.limit+'</span></div><div class="track"><div class="bar" style="width:'+frac+'%"></div></div>'+
+ '<section class="panel">'+content+'</section><div class="actions"><button class="link" data-action="home">← На главную</button></div>';
+ const focus=app.querySelector("input[autofocus]");if(focus)focus.focus();
+}
+function logAnswer(ok,input){
+ const q=current;
+ data.sequence++;data.history.push({id:q.id,type:q.type,ok:!!ok,day:today(),time:new Date().toISOString(),input:String(input||"").slice(0,500)});
+ if(data.history.length>5000)data.history=data.history.slice(-3500);
+ persist();q.ok=!!ok;q.done=true;if(ok)session.correct++;renderTask();
+}
+function renderEnd(){
+ const an=analysis();
+ app.innerHTML='<section class="panel end"><div class="eyebrow">Сессия завершена</div><h1>'+session.n+' заданий</h1><p class="lead" style="margin:0 auto 20px">Ты закрепил '+session.correct+' из '+session.n+' ответов. Сложные термины вернутся в следующих занятиях.</p>'+
+ '<div class="grid-stats"><div class="stat"><div class="val">'+an.count+'</div><div class="label">Сегодня</div></div><div class="stat"><div class="val">'+(an.accuracy===null?"—":an.accuracy+"%")+'</div><div class="label">Точность</div></div>'+
+ '<div class="stat"><div class="val">'+an.weak.length+'</div><div class="label">Повторить</div></div><div class="stat"><div class="val">'+an.streak+'</div><div class="label">Серия</div></div></div>'+
+ '<button class="primary big" data-action="extra">Ещё 5 заданий</button><div class="actions" style="justify-content:center"><button class="link" data-action="home">На главную</button></div></section>';
+}
+app.addEventListener("click",e=>{
+ const m=e.target.closest("[data-mode]");if(m){selectedMode=m.dataset.mode;renderHome();return}
+ const a=e.target.closest("[data-action]");if(a){
+ if(a.dataset.action==="start"){start();return}
+ if(a.dataset.action==="extra"){selectedMode="mix";session={n:0,limit:5,correct:0};pickNext();renderTask();return}
+ if(a.dataset.action==="home"){renderHome();return}
+ if(a.dataset.action==="next"){session.n++;if(session.n>=session.limit){current=null;renderEnd();}else{pickNext();renderTask();}return}
+ if(a.dataset.action==="reveal"){current.revealed=true;renderTask();return}
+ }
+ const choice=e.target.closest("[data-answer]");if(choice&&current&&!current.done&&current.type==="quiz"){current.choice=choice.dataset.answer;logAnswer(current.choice===current.term[0],current.choice);return}
+ const rate=e.target.closest("[data-rate]");if(rate&&current&&!current.done){logAnswer(rate.dataset.rate==="true",current.input);return}
+});
+app.addEventListener("submit",e=>{
+ if(!current)return;
+ if(e.target.id==="fill-form"&&!current.done){e.preventDefault();const v=e.target.elements.answer.value;const acceptable=current.term[4].split(",").some(x=>norm(x)===norm(v));logAnswer(acceptable,v);}
+ if(e.target.id==="phrase-form"&&!current.revealed){e.preventDefault();current.input=e.target.elements.answer.value;current.revealed=true;renderTask();}
+});
+renderHome();
+})();
+</script>
+</body>
+</html>
