@@ -175,31 +175,92 @@ const PHRASES=[
 ];
 const app=document.getElementById("app");
 const KEY="rukovoditel-trainer-v1";
-const today=()=>new Date().toLocaleDateString("sv-SE");
+const today=()=>new Intl.DateTimeFormat("sv-SE",{timeZone:"Europe/Moscow",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+const currentMoscowHour=()=>Number(new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Moscow",hour:"2-digit",hourCycle:"h23"}).format(new Date()));
 const norm=s=>String(s||"").toLowerCase().trim().replaceAll("ё","е").replace(/[.,!?;:]/g,"").replace(/\s+/g," ");
 const safe=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let data={version:1,history:[],sequence:0};
 try{const d=JSON.parse(localStorage.getItem(KEY)||"null");if(d&&Array.isArray(d.history)){data=d;data.sequence=Number(data.sequence)||0;}}catch(e){}
 const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}};
-let selectedMode="mix",session=null,current=null,lastKeys=[];
+let selectedMode="mix",session=null,current=null,lastKeys=[],page="home";
 const labelMode={mix:"Смешанная тренировка",quiz:"Выбери термин",fill:"Вставь слово",card:"Карточка",phrase:"Точная формулировка"};
 function historyOf(id){return data.history.filter(a=>a.id===id)}
 function analysis(){
- const auto=data.history.filter(a=>a.type==="quiz"||a.type==="fill");
- const correct=auto.filter(a=>a.ok).length;
- const weak=TERMS.map(t=>({term:t[0],bad:historyOf(t[0]).filter(x=>!x.ok).length,good:historyOf(t[0]).filter(x=>x.ok).length})).filter(x=>x.bad>x.good).sort((a,b)=>(b.bad-b.good)-(a.bad-a.good));
+ const graded=data.history.filter(a=>a.type==="quiz"||a.type==="fill");
+ const correct=graded.filter(a=>a.ok).length;
+ const weak=TERMS.map(t=>{
+  const items=historyOf(t[0]);const bad=items.filter(x=>!x.ok).length,good=items.filter(x=>x.ok).length;
+  return {term:t[0],bad,good,total:items.length,lastWrong:!!items.length&&!items[items.length-1].ok};
+ }).filter(x=>x.bad>0&&(x.lastWrong||x.bad>=x.good))
+ .sort((a,b)=>(b.lastWrong?1:0)-(a.lastWrong?1:0)||(b.bad-b.good)-(a.bad-a.good)||b.bad-a.bad);
  const count=data.history.filter(a=>a.day===today()).length;
- let streak=0;const dates=new Set(data.history.map(a=>a.day));const d=new Date();if(!dates.has(d.toLocaleDateString("sv-SE")))d.setDate(d.getDate()-1);
- while(dates.has(d.toLocaleDateString("sv-SE"))){streak++;d.setDate(d.getDate()-1)}
- return{count,total:data.history.length,accuracy:auto.length?Math.round(correct/auto.length*100):null,weak,streak};
+ let streak=0;const dates=new Set(data.history.map(a=>a.day));const d=new Date();
+ const utc3Date=new Date(d.getTime()+3*3600000);
+ function dkey(z){return z.toISOString().slice(0,10)}
+ if(!dates.has(dkey(utc3Date)))utc3Date.setUTCDate(utc3Date.getUTCDate()-1);
+ while(dates.has(dkey(utc3Date))){streak++;utc3Date.setUTCDate(utc3Date.getUTCDate()-1)}
+ const byType=["fill","quiz","card","phrase"].map(type=>{
+  const items=data.history.filter(a=>a.type===type);
+  return {type,n:items.length,ok:items.filter(a=>a.ok).length};
+ });
+ const todayAnswers=data.history.filter(a=>a.day===today());
+ return{count,total:data.history.length,accuracy:graded.length?Math.round(correct/graded.length*100):null,graded:graded.length,gradedCorrect:correct,gradedWrong:graded.length-correct,self:data.history.length-graded.length,todayAnswers,weak,streak,byType};
+}
+function reportText(){
+ const a=analysis();const out=[
+ "РЕЧЬ РУКОВОДИТЕЛЯ — ОТЧЁТ ОБ ОБУЧЕНИИ",
+ "Дата (Москва): "+today(),
+ "Всего ответов: "+a.total+"; за сегодня: "+a.count,
+ "Автоматически проверенных тестов: "+a.graded+", верно: "+a.gradedCorrect+", ошибочно: "+a.gradedWrong+", точность: "+(a.accuracy===null?"нет данных":a.accuracy+"%"),
+ "Карточки и свободные формулировки оценены самостоятельно: "+a.self+". Эти отметки не являются независимой проверкой.",
+ "Режимы: "+a.byType.map(x=>labelMode[x.type]+": "+x.n+" (успешно/самооценка "+x.ok+")").join("; "),
+ "Трудные термины: "+(a.weak.length?a.weak.slice(0,12).map(x=>x.term+" (ошибок "+x.bad+", успешных "+x.good+")").join("; "):"пока не определены"),
+ "Вывод: упор на активное вспоминание терминов и самостоятельные точные формулировки. Повторять фактические ошибки из журнала."
+ ];
+ const recent=data.history.slice(-200);
+ out.push("ПОСЛЕДНИЕ ОТВЕТЫ (до 200 записей):");
+ for(const h of recent)out.push(h.time+" | "+h.type+" | "+h.id+" | "+(h.ok?"верно/знаю":"ошибка/повторить")+" | ответ: "+(h.input||"(не указан)"));
+ return out.join("\n");
+}
+function saveReport(){
+ const blob=new Blob([JSON.stringify({metadata:{exportedAt:new Date().toISOString(),source:"Речь руководителя",timezone:"Europe/Moscow"},history:data.history,summary:analysis()},null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="rech-rukovoditelya-otvety-"+today()+".json";
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+function copyReport(){
+ const val=reportText();
+ const fallback=()=>{
+ const el=document.createElement("textarea");el.value=val;el.style.position="fixed";el.style.opacity="0";document.body.appendChild(el);el.select();
+ let ok=false;try{ok=document.execCommand("copy")}catch(e){}
+ el.remove();toast(ok?"Отчёт скопирован":"Не удалось скопировать. Скачай JSON.");
+ };
+ if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(val).then(()=>toast("Отчёт скопирован"),fallback);else fallback();
+}
+function toast(msg){const n=document.getElementById("notice");n.textContent=msg;n.style.display="block";setTimeout(()=>n.style.display="none",3000)}
+function renderReport(){
+ page="report";const a=analysis();
+ const rows=a.byType.map(t=>'<div class="stat"><div class="val">'+t.n+'</div><div class="label">'+safe(labelMode[t.type])+'</div></div>').join("");
+ const issues=a.weak.slice(0,20).map((x,i)=>'<div class="journal-row"><span>'+safe(x.term)+'</span><small>'+x.bad+' ошибок · '+x.good+' успешных</small></div>').join("");
+ const logs=data.history.slice(-100).reverse().map(h=>'<div class="journal-row"><span>'+safe(h.id)+'<small style="display:block;color:#829087;margin-top:4px">'+safe(h.time.slice(0,16).replace("T"," "))+' · '+safe(h.type)+'</small></span><small>'+(!h.ok?"Повторить":"Верно / знаю")+'<span style="display:block;max-width:260px;word-wrap:break-word">'+safe(h.input||"")+'</span></small></div>').join("");
+ app.innerHTML='<div class="eyebrow">Анализ ответов · время Москвы</div><h1>Журнал обучения</h1><p class="lead">История всех ответов сохраняется в этом браузере. Автоматически проверяются только выбор термина и пропущенное слово. Карточки и свободный текст — твоя самооценка.</p>'+
+ '<div class="grid-stats"><div class="stat"><div class="val">'+a.total+'</div><div class="label">Всего ответов</div></div><div class="stat"><div class="val">'+a.gradedWrong+'</div><div class="label">Ошибки в тестах</div></div><div class="stat"><div class="val">'+(a.accuracy===null?"—":a.accuracy+"%")+'</div><div class="label">Точность тестов</div></div><div class="stat"><div class="val">'+a.count+'</div><div class="label">Сегодня</div></div></div>'+
+ '<div class="section-title">Ответы по типам</div><div class="grid-stats">'+rows+'</div>'+
+ '<div class="section-title">Персональная программа</div><section class="panel">'+
+ '<p style="margin:0;color:#506358;line-height:1.7">'+(a.graded===0?"Начни с тестов, чтобы получить объективный результат.":"На следующем занятии — прежде всего активное вспоминание и закрепление сложных терминов. Проверено автоматически: "+a.graded+"; ошибки: "+a.gradedWrong+".")+'</p>'+
+ (a.weak.length?'<div class="section-title">На повторение</div><div>'+issues+'</div>':'<p class="mini">По текущим данным трудных терминов не выделено.</p>')+
+ '<p class="bottomline">План пересчитывается после каждого ответа и при следующем посещении. Вечером по московскому времени выводы будут доступны без отдельного запуска. Сайт пока не передаёт ответы автоматически в ChatGPT.</p></section>'+
+ '<div class="section-title">Архив · последние 100 ответов</div><section class="panel">'+(logs||'<p class="mini">Пока нет ответов.</p>')+'</section>'+
+ '<div class="actions"><button class="primary" data-action="copy-report">Скопировать отчёт для ChatGPT</button><button class="secondary" data-action="export">Скачать весь архив JSON</button></div>'+
+ '<div class="actions"><button class="link" data-action="home">← К тренировке</button></div>';
 }
 function renderHome(){
  session=null;current=null;
- const s=analysis();const done=Math.min(100,Math.round(s.count/12*100));
- app.innerHTML='<div class="eyebrow">Ежедневная практика · 10–15 минут</div><h1>Говори точнее.<br>Руководи увереннее.</h1>'+
+ const s=analysis();const done=Math.min(100,Math.round(s.count/20*100));
+ app.innerHTML='<div class="eyebrow">Ежедневная практика · 20 вопросов за занятие</div><h1>Говори точнее.<br>Руководи увереннее.</h1>'+
  '<p class="lead">Тренируй строительные термины и короткие профессиональные формулировки. Ошибки возвращаются на повторение, а сложность постепенно растёт.</p>'+
- '<button class="primary big" data-action="start">'+(s.count>=12?"Продолжить · ещё 5 заданий":s.total?"Продолжить тренировку":"Начать стартовый тест")+'</button>'+
- '<div class="grid-stats"><div class="stat"><div class="val">'+s.count+'<span style="font-size:14px;color:#a1aaa4"> / 12</span></div><div class="label">Сегодня</div></div>'+
+ '<button class="primary big" data-action="start">'+(s.total?"Начать 20 заданий":"Начать первые 20 заданий")+'</button>'+
+ '<div class="grid-stats"><div class="stat"><div class="val">'+s.count+'<span style="font-size:14px;color:#a1aaa4"> / 20</span></div><div class="label">Сегодня</div></div>'+
  '<div class="stat"><div class="val">'+(s.accuracy===null?"—":s.accuracy+"%")+'</div><div class="label">Точность тестов</div></div>'+
  '<div class="stat"><div class="val">'+s.weak.length+'</div><div class="label">На повторение</div></div>'+
  '<div class="stat"><div class="val">'+s.streak+'</div><div class="label">Дней подряд</div></div></div>'+
@@ -212,19 +273,21 @@ function renderHome(){
  modeButton("card","Карточки","Вспомнить определение")+
  '</div>'+
  (s.weak.length?'<div class="section-title">Стоит повторить</div><div class="weak">'+s.weak.slice(0,5).map(x=>'<span class="pill">'+safe(x.term)+'</span>').join("")+'</div>':"")+
- '<p class="bottomline">Результаты сохраняются только в этом браузере. Новые задания подбираются сразу по твоим ответам — без ожидания обновления. Можно заниматься в любое время.</p>';
+ '<div class="actions"><button class="secondary" data-action="report">Журнал и анализ ответов</button></div>'+
+ '<p class="bottomline">Результаты сохраняются в этом браузере, а план адаптируется после каждого ответа. Для анализа в ChatGPT открой журнал и скопируй отчёт.</p>';
 }
 function modeButton(id,title,detail){
  return '<button class="mode '+(selectedMode===id?"active":"")+'" data-mode="'+id+'"><b>'+title+'</b><small>'+detail+'</small></button>';
 }
 function modeOfNext(){
  if(selectedMode!=="mix")return selectedMode;
- return ["fill","quiz","phrase","card","fill","quiz"][session.n%6];
+ return ["fill","quiz","phrase","fill","quiz","fill","card","phrase","fill","quiz","fill","phrase","quiz","fill","card","fill","phrase","quiz","fill","phrase"][session.n%20];
 }
 function scoreFor(id){
  const h=historyOf(id),bad=h.filter(x=>!x.ok).length,good=h.filter(x=>x.ok).length,last=h.length?h[h.length-1]:null;
- const recent=lastKeys.includes(id)?-90:0;
- return (last&&!last.ok?55:0)+(bad-good)*18+(!h.length?25:0)+(last&&last.ok?-h.length:0)+recent+Math.random()*12;
+ const recent=lastKeys.includes(id)?-130:0;
+ const sessionSeen=session?.seenIds?.includes(id)?-75:0;
+ return (last&&!last.ok?35:0)+(bad-good)*11+(!h.length?28:0)+(last&&last.ok?-h.length:0)+recent+sessionSeen+Math.random()*14;
 }
 function pickNext(){
  const type=modeOfNext();let item=null;
@@ -236,10 +299,11 @@ function pickNext(){
  candidates.sort((a,b)=>b.score-a.score);item=candidates[0];
  }
  current={...item,done:false,revealed:false,input:"",ok:false,choice:null};
+ session.seenIds??=[];session.seenIds.push(item.id);
  lastKeys=[...lastKeys,item.key].slice(-4);
 }
 function start(){
- session={n:0,limit:analysis().count>=12?5:analysis().total===0?6:Math.max(12-analysis().count,5),correct:0};
+ session={n:0,limit:20,correct:0};
  lastKeys=[];pickNext();renderTask();
 }
 function renderTask(){
@@ -287,14 +351,17 @@ function renderEnd(){
  app.innerHTML='<section class="panel end"><div class="eyebrow">Сессия завершена</div><h1>'+session.n+' заданий</h1><p class="lead" style="margin:0 auto 20px">Ты закрепил '+session.correct+' из '+session.n+' ответов. Сложные термины вернутся в следующих занятиях.</p>'+
  '<div class="grid-stats"><div class="stat"><div class="val">'+an.count+'</div><div class="label">Сегодня</div></div><div class="stat"><div class="val">'+(an.accuracy===null?"—":an.accuracy+"%")+'</div><div class="label">Точность</div></div>'+
  '<div class="stat"><div class="val">'+an.weak.length+'</div><div class="label">Повторить</div></div><div class="stat"><div class="val">'+an.streak+'</div><div class="label">Серия</div></div></div>'+
- '<button class="primary big" data-action="extra">Ещё 5 заданий</button><div class="actions" style="justify-content:center"><button class="link" data-action="home">На главную</button></div></section>';
+ '<button class="primary big" data-action="extra">Ещё 20 заданий</button><div class="actions" style="justify-content:center"><button class="link" data-action="home">На главную</button></div></section>';
 }
 app.addEventListener("click",e=>{
  const m=e.target.closest("[data-mode]");if(m){selectedMode=m.dataset.mode;renderHome();return}
  const a=e.target.closest("[data-action]");if(a){
  if(a.dataset.action==="start"){start();return}
- if(a.dataset.action==="extra"){selectedMode="mix";session={n:0,limit:5,correct:0};pickNext();renderTask();return}
+ if(a.dataset.action==="extra"){selectedMode="mix";session={n:0,limit:20,correct:0};pickNext();renderTask();return}
  if(a.dataset.action==="home"){renderHome();return}
+ if(a.dataset.action==="report"){renderReport();return}
+ if(a.dataset.action==="copy-report"){copyReport();return}
+ if(a.dataset.action==="export"){saveReport();return}
  if(a.dataset.action==="next"){session.n++;if(session.n>=session.limit){current=null;renderEnd();}else{pickNext();renderTask();}return}
  if(a.dataset.action==="reveal"){current.revealed=true;renderTask();return}
  }
