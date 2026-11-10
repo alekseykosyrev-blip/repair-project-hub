@@ -193,6 +193,7 @@ function analysis(){
   return {term:t[0],bad,good,total:items.length,lastWrong:!!items.length&&!items[items.length-1].ok};
  }).filter(x=>x.bad>0&&(x.lastWrong||x.bad>=x.good))
  .sort((a,b)=>(b.lastWrong?1:0)-(a.lastWrong?1:0)||(b.bad-b.good)-(a.bad-a.good)||b.bad-a.bad);
+ const mistakes=TERMS.map(t=>{const x=historyOf(t[0]);return {term:t[0],bad:x.filter(h=>!h.ok).length,good:x.filter(h=>h.ok).length}}).filter(x=>x.bad>0).sort((a,b)=>b.bad-a.bad||a.term.localeCompare(b.term,"ru"));
  const count=data.history.filter(a=>a.day===today()).length;
  let streak=0;const dates=new Set(data.history.map(a=>a.day));const d=new Date();
  const utc3Date=new Date(d.getTime()+3*3600000);
@@ -204,7 +205,7 @@ function analysis(){
   return {type,n:items.length,ok:items.filter(a=>a.ok).length};
  });
  const todayAnswers=data.history.filter(a=>a.day===today());
- return{count,total:data.history.length,accuracy:graded.length?Math.round(correct/graded.length*100):null,graded:graded.length,gradedCorrect:correct,gradedWrong:graded.length-correct,self:data.history.length-graded.length,todayAnswers,weak,streak,byType};
+ return{count,total:data.history.length,accuracy:graded.length?Math.round(correct/graded.length*100):null,graded:graded.length,gradedCorrect:correct,gradedWrong:graded.length-correct,self:data.history.length-graded.length,todayAnswers,weak,mistakes,streak,byType};
 }
 function reportText(){
  const a=analysis();const out=[
@@ -214,7 +215,8 @@ function reportText(){
  "Автоматически проверенных тестов: "+a.graded+", верно: "+a.gradedCorrect+", ошибочно: "+a.gradedWrong+", точность: "+(a.accuracy===null?"нет данных":a.accuracy+"%"),
  "Карточки и свободные формулировки оценены самостоятельно: "+a.self+". Эти отметки не являются независимой проверкой.",
  "Режимы: "+a.byType.map(x=>labelMode[x.type]+": "+x.n+" (успешно/самооценка "+x.ok+")").join("; "),
- "Трудные термины: "+(a.weak.length?a.weak.slice(0,12).map(x=>x.term+" (ошибок "+x.bad+", успешных "+x.good+")").join("; "):"пока не определены"),
+ "На повторение: "+(a.weak.length?a.weak.slice(0,12).map(x=>x.term+" (ошибок "+x.bad+", успешных "+x.good+")").join("; "):"нет текущих слабых терминов"),
+ "Все термины с ошибками: "+(a.mistakes.length?a.mistakes.map(x=>x.term+" ("+x.bad+" ошибок)").join("; "):"ошибок пока не было"),
  "Вывод: упор на активное вспоминание терминов и самостоятельные точные формулировки. Повторять фактические ошибки из журнала."
  ];
  const recent=data.history.slice(-200);
@@ -242,6 +244,7 @@ function renderReport(){
  page="report";const a=analysis();
  const rows=a.byType.map(t=>'<div class="stat"><div class="val">'+t.n+'</div><div class="label">'+safe(labelMode[t.type])+'</div></div>').join("");
  const issues=a.weak.slice(0,20).map((x,i)=>'<div class="journal-row"><span>'+safe(x.term)+'</span><small>'+x.bad+' ошибок · '+x.good+' успешных</small></div>').join("");
+ const allMistakes=a.mistakes.slice(0,20).map(x=>'<div class="journal-row"><span>'+safe(x.term)+'</span><small>'+x.bad+' ошибок</small></div>').join("");
  const logs=data.history.slice(-100).reverse().map(h=>'<div class="journal-row"><span>'+safe(h.id)+'<small style="display:block;color:#829087;margin-top:4px">'+safe(h.time.slice(0,16).replace("T"," "))+' · '+safe(h.type)+'</small></span><small>'+(!h.ok?"Повторить":"Верно / знаю")+'<span style="display:block;max-width:260px;word-wrap:break-word">'+safe(h.input||"")+'</span></small></div>').join("");
  app.innerHTML='<div class="eyebrow">Анализ ответов · время Москвы</div><h1>Журнал обучения</h1><p class="lead">История всех ответов сохраняется в этом браузере. Автоматически проверяются только выбор термина и пропущенное слово. Карточки и свободный текст — твоя самооценка.</p>'+
  '<div class="grid-stats"><div class="stat"><div class="val">'+a.total+'</div><div class="label">Всего ответов</div></div><div class="stat"><div class="val">'+a.gradedWrong+'</div><div class="label">Ошибки в тестах</div></div><div class="stat"><div class="val">'+(a.accuracy===null?"—":a.accuracy+"%")+'</div><div class="label">Точность тестов</div></div><div class="stat"><div class="val">'+a.count+'</div><div class="label">Сегодня</div></div></div>'+
@@ -249,7 +252,8 @@ function renderReport(){
  '<div class="section-title">Персональная программа</div><section class="panel">'+
  '<p style="margin:0;color:#506358;line-height:1.7">'+(a.graded===0?"Начни с тестов, чтобы получить объективный результат.":"На следующем занятии — прежде всего активное вспоминание и закрепление сложных терминов. Проверено автоматически: "+a.graded+"; ошибки: "+a.gradedWrong+".")+'</p>'+
  (a.weak.length?'<div class="section-title">На повторение</div><div>'+issues+'</div>':'<p class="mini">По текущим данным трудных терминов не выделено.</p>')+
- '<p class="bottomline">План пересчитывается после каждого ответа и при следующем посещении. Вечером по московскому времени выводы будут доступны без отдельного запуска. Сайт пока не передаёт ответы автоматически в ChatGPT.</p></section>'+
+ '<div class="section-title">История ошибок</div>'+(a.mistakes.length?allMistakes:'<p class="mini">Ошибок пока нет.</p>')+
+ '<p class="bottomline">План пересчитывается после каждого ответа и при следующем посещении. Статистика видна в любое время. Сайт пока не передаёт ответы автоматически в ChatGPT.</p></section>'+
  '<div class="section-title">Архив · последние 100 ответов</div><section class="panel">'+(logs||'<p class="mini">Пока нет ответов.</p>')+'</section>'+
  '<div class="actions"><button class="primary" data-action="copy-report">Скопировать отчёт для ChatGPT</button><button class="secondary" data-action="export">Скачать весь архив JSON</button></div>'+
  '<div class="actions"><button class="link" data-action="home">← К тренировке</button></div>';
@@ -348,7 +352,7 @@ function logAnswer(ok,input){
 }
 function renderEnd(){
  const an=analysis();
- app.innerHTML='<section class="panel end"><div class="eyebrow">Сессия завершена</div><h1>'+session.n+' заданий</h1><p class="lead" style="margin:0 auto 20px">Ты закрепил '+session.correct+' из '+session.n+' ответов. Сложные термины вернутся в следующих занятиях.</p>'+
+ app.innerHTML='<section class="panel end"><div class="eyebrow">Сессия завершена</div><h1>'+session.n+' заданий</h1><p class="lead" style="margin:0 auto 20px">Успешных ответов и самооценок: '+session.correct+' из '+session.n+'. Сложные термины вернутся в следующих занятиях.</p>'+
  '<div class="grid-stats"><div class="stat"><div class="val">'+an.count+'</div><div class="label">Сегодня</div></div><div class="stat"><div class="val">'+(an.accuracy===null?"—":an.accuracy+"%")+'</div><div class="label">Точность</div></div>'+
  '<div class="stat"><div class="val">'+an.weak.length+'</div><div class="label">Повторить</div></div><div class="stat"><div class="val">'+an.streak+'</div><div class="label">Серия</div></div></div>'+
  '<button class="primary big" data-action="extra">Ещё 20 заданий</button><div class="actions" style="justify-content:center"><button class="link" data-action="home">На главную</button></div></section>';
