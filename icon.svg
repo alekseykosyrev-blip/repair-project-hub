@@ -1,7 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Мои ремонтные проекты">
-  <rect width="512" height="512" rx="112" fill="#111827"/>
-  <path d="M132 235 256 128l124 107v145a24 24 0 0 1-24 24h-72v-96h-56v96h-72a24 24 0 0 1-24-24V235Z" fill="#f8fafc"/>
-  <path d="m105 250 151-130 151 130" fill="none" stroke="#60a5fa" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="364" cy="364" r="58" fill="#22c55e"/>
-  <path d="m338 364 18 18 36-40" fill="none" stroke="#fff" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192"><rect width="192" height="192" rx="42" fill="#24493f"/><path d="M57 134V54h42c28 0 43 12 43 35 0 17-9 28-24 33l24 32h-30l-22-30H83v30H57zm26-52v18h18c10 0 15-3 15-9 0-7-5-9-15-9H83z" fill="#fff"/></svg>
