@@ -205,16 +205,19 @@ function renderTask(){
  (!q.done?'<form id="fill-form"><input class="entry" name="answer" placeholder="Введи слово или выражение" autocomplete="off" autofocus required><div class="actions"><button class="primary big" type="submit">Проверить</button></div></form>':"");
  }else if(q.type==="card"){
  content='<div class="topic">Карточка · '+safe(t[1])+'</div><div class="qtitle">'+safe(t[2])+'</div>'+
- (q.revealed?'<div class="feedback"><div>Ответ:</div><span class="reply">'+safe(t[0])+'</span><p>'+safe(t[5])+'</p><div class="actions"><button class="secondary" data-rate="false">Нужно повторить</button><button class="primary" data-rate="true">Знаю</button></div></div>':'<div class="actions"><button class="primary" data-action="reveal">Показать термин</button></div>');
+ (q.revealed?'<div class="feedback"><div>Ответ:</div><span class="reply">'+safe(t[0])+'</span><p>'+safe(t[5])+'</p>'+(!q.done?'<div class="actions"><button class="secondary" data-rate="false">Нужно повторить</button><button class="primary" data-rate="true">Знаю</button></div>':'')+'</div>':'<div class="actions"><button class="primary" data-action="reveal">Показать термин</button></div>');
  }else if(q.type==="phrase"){
  content='<div class="topic">Сформулируй профессионально</div><div class="qtitle">«'+safe(q.phrase[0])+'»</div><p class="context">Напиши свою короткую формулировку. Дословного совпадения не требуется.</p>'+
  (!q.revealed?'<form id="phrase-form"><textarea class="entry area" name="answer" placeholder="Твой вариант..." required></textarea><div class="actions"><button class="primary big" type="submit">Сравнить с примером</button></div></form>':
- '<div class="feedback"><div>Пример точной формулировки:</div><span class="reply">'+safe(q.phrase[1])+'</span><p>Опорный термин: <b>'+safe(q.phrase[2])+'</b></p><p class="mini">Смысл сохранён, выражение точнее и короче? Отметь сам. Автоматическая оценка свободного текста здесь не выдаётся за экспертную.</p><div class="actions"><button class="secondary" data-rate="false">Нужно повторить</button><button class="primary" data-rate="true">Получилось</button></div></div>');
+ '<div class="feedback"><div>Пример точной формулировки:</div><span class="reply">'+safe(q.phrase[1])+'</span><p>Опорный термин: <b>'+safe(q.phrase[2])+'</b></p><p class="mini">Смысл сохранён, выражение точнее и короче? Отметь сам. Автоматическая оценка свободного текста здесь не выдаётся за экспертную.</p>'+(!q.done?'<div class="actions"><button class="secondary" data-rate="false">Нужно повторить</button><button class="primary" data-rate="true">Получилось</button></div>':'')+'</div>');
  }
  if(q.done){
+ if(q.type==="quiz"||q.type==="fill"){
  const title=q.ok?"Верно — закрепляем":"Нужно повторить";
  const answer=q.type==="quiz"?t[0]:t[4].split(",")[0];
- content+='<div class="feedback"><b>'+title+'</b><span class="reply">'+safe(answer)+'</span><div>'+safe(t[5])+'</div></div><div class="actions"><button class="primary big" data-action="next">Следующее задание</button></div>';
+ content+='<div class="feedback"><b>'+title+'</b><span class="reply">'+safe(answer)+'</span><div>'+safe(t[5])+'</div></div>';
+ }
+ content+='<div class="actions"><button class="primary big" data-action="next">Следующее задание</button></div>';
  }
  app.innerHTML='<div class="status"><span>'+labelMode[q.type]+'</span><span>'+(session.n+1)+' / '+session.limit+'</span></div><div class="track"><div class="bar" style="width:'+frac+'%"></div></div>'+
  '<section class="panel">'+content+'</section><div class="actions"><button class="link" data-action="home">← На главную</button></div>';
