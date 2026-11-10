@@ -1,13 +1,13 @@
 {
-  "name": "СтройCRM — управление объектами",
-  "short_name": "СтройCRM",
-  "description": "Управление объектами, согласованными сметами, актами, расходами и оплатами",
+  "name": "Речь руководителя — тренажёр",
+  "short_name": "Речь руководителя",
+  "description": "Ежедневная практика профессиональной строительной терминологии",
   "lang": "ru",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f3f6f3",
-  "theme_color": "#142e25",
+  "background_color": "#f6f5f1",
+  "theme_color": "#f6f5f1",
   "icons": [
     {
       "src": "icon.svg",
