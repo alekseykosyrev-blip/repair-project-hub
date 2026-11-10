@@ -204,7 +204,7 @@ const dayNumber=day=>Math.floor(Date.parse(day+"T00:00:00Z")/86400000);
 function learningState(id){
  const h=historyOf(id),last=h.length?h[h.length-1]:null;
  if(!last)return {seen:false,due:true,days:0,streak:0};
- let streak=0;for(let i=h.length-1;i>=0&&h[i].ok;i--)streak++;
+ let streak=0,lastCountedDay=null;for(let i=h.length-1;i>=0&&h[i].ok;i--){if(h[i].day!==lastCountedDay){streak++;lastCountedDay=h[i].day;}}
  const intervals=[0,1,3,7,14,30];
  const days=last.ok?intervals[Math.min(streak,intervals.length-1)]:0;
  return {seen:true,due:dayNumber(today())>=dayNumber(last.day||today())+days,days,streak};
@@ -321,7 +321,7 @@ function scoreFor(id,type){
  const ls=learningState(id),shouldRepeat=bad>0&&(!last.ok||bad>=good);
  const recent=lastKeys.includes(id)?-140:0;
  const sessionSeen=session?.seenIds?.includes(id)?-110:0;
- const reviewPenalty=session?.reviewOnly&&!shouldRepeat?-250:0;
+ const reviewPenalty=session?.reviewOnly&&!shouldRepeat?-75:0;
  const quizRight=h.filter(x=>x.type==="quiz"&&x.ok).length;
  const fillRight=h.filter(x=>x.type==="fill"&&x.ok).length;
  const ladder=type==="quiz"?-Math.min(quizRight,4)*12:type==="fill"?Math.min(quizRight,3)*10-Math.min(fillRight,4)*5:0;
@@ -330,7 +330,7 @@ function scoreFor(id,type){
 function pickNext(){
  const type=modeOfNext();let item=null;
  if(type==="phrase"){
- const candidates=PHRASES.map((p,i)=>({type,id:p[2],key:"p"+i,phrase:p,score:scoreFor(p[2],type)+Math.random()*4}));
+ const candidates=PHRASES.map((p,i)=>({type,id:p[2],key:"p"+i,phrase:p,score:scoreFor(p[2],type)+(session?.seenKeys?.includes("p"+i)?-135:0)+Math.random()*4}));
  candidates.sort((a,b)=>b.score-a.score);item=candidates.find(x=>!lastKeys.includes(x.key))||candidates[0];
  }else{
  const candidates=TERMS.map((t,i)=>({type,id:t[0],key:t[0],term:t,score:scoreFor(t[0],type)+(i%4)*.1}));
@@ -338,6 +338,7 @@ function pickNext(){
  }
  current={...item,done:false,revealed:false,input:"",ok:false,choice:null,hintLevel:0,draft:""};
  session.seenIds??=[];session.seenIds.push(item.id);
+ session.seenKeys??=[];session.seenKeys.push(item.key);
  session.seenIds??=[];session.seenIds.push(item.id);
  lastKeys=[...lastKeys,item.key].slice(-4);
 }
