@@ -189,6 +189,7 @@ const PHRASES=[
 ["Если всё сделать одним заходом, мы ещё сильнее задержим маляров.","Разделим работу на захватки и согласуем очередность между смежными подрядчиками.","Захватка"],
 ["Нам надо понимать, почему материалы закончились раньше.","Проведём анализ фактического расхода материалов и отклонений от плановой потребности.","Плановая себестоимость"]
 ];
+const CHAINS=[["Фронт работ","Электрики не закончили монтаж, а маляры уже приехали.",["Электромонтаж ещё не завершён","Фронт малярных работ не готов","Согласовать срок передачи участка и скорректировать график"],"Факт → влияние на работу → следующий шаг."],["План-факт","План — 500 м², фактически бригада выполнила 420 м².",["Выполнено 420 м² вместо 500 м²","Отставание от плана — 80 м²","Выяснить причины и скорректировать план работ"],"Сначала цифры, затем отклонение, затем управленческое действие."],["Делегирование","Стас передал тебе презентации, но не назвал границы самостоятельных решений.",["Подготовка презентаций передана мне","Полномочия на согласование пока не определены","Уточнить, что я вправе утверждать без Стаса"],"Поручение и делегированные полномочия могут различаться."],["Кассовый разрыв","Оплата от заказчика ожидается через неделю, а зарплату нужно выдать завтра.",["Зарплата подлежит выплате раньше поступления денег","Есть риск кассового разрыва","Составить платёжный график и определить источник покрытия"],"Отделяй будущие поступления от денег, доступных сегодня."],["Координация","Маляры и электрики мешают друг другу в одной комнате.",["Работы двух бригад пересекаются","Очередность смежных работ не согласована","Согласовать порядок доступа и сроки для каждой бригады"],"Сначала наблюдение, потом организационная причина, потом решение."],["Контрольная точка","Прораб обещал закончить потолки к пятнице, но проверка не назначена.",["Срок готовности потолков обозначен","Промежуточная проверка результата не запланирована","Назначить контрольную точку и ответственного"],"Обещанный срок сам по себе не заменяет проверку."],["Дефектная ведомость","После осмотра нашли дефекты, но обсуждали их только устно.",["На отдельных участках выявлены дефекты","Места и характер замечаний не зафиксированы","Составить дефектную ведомость с привязкой к участкам"],"Заметить проблему недостаточно: её нужно зафиксировать."],["Ресурсное планирование","Две бригады выходят одновременно, но шлифовальная машина одна.",["Двум бригадам требуется одно оборудование","Возможен конфликт за ограниченный ресурс","Распределить время работы на оборудовании или добавить технику"],"Точный план учитывает ресурсы до выхода бригад."],["Согласование","На объекте хотят заменить армирующую систему без утверждённого изменения.",["Предложена замена технологии подготовки","Новая система пока не согласована","Подготовить обоснование и согласовать изменение до применения"],"Техническое предложение ещё не означает согласованное решение."],["Ответственный исполнитель","Задачу обсудили, но никто не знает, кто должен её выполнять.",["Задача поставлена на совещании","Ответственный исполнитель не определён","Назначить ответственного и срок исполнения"],"Для исполнения нужны результат, ответственный и срок."],["Технологическая выдержка","Бригада планирует шлифовать материал, не дождавшись его необходимой прочности.",["Материал не достиг требуемого состояния","Шлифование пока не допускается технологией","Соблюсти условия и время выдержки по требованиям производителя"],"Технологическое ограничение важнее желания ускорить процесс."],["Критический путь","Окна задержались, и несколько последующих работ теперь не могут начаться.",["Монтаж окон отстаёт","Задержка влияет на зависимые операции и общий срок","Пересчитать график и оценить варианты компенсации отставания"],"Показывай влияние задержки на связанные работы."],["Полномочия","Тебе поручили материалы, но выбор поставщика остался за другим руководителем.",["Мне поручили контролировать поставку","Право выбирать поставщика мне не передано","Согласовать границы полномочий по закупкам"],"Ответственность за задачу не даёт автоматически всех прав."],["Себестоимость","В расчёте работ забыли доставку и расходники.",["В смете затрат не учтена часть расходов","Плановая себестоимость может быть занижена","Уточнить затраты и пересчитать себестоимость"],"Неизвестный расход лучше выявить до согласования цены."],["Регламент","Порядок приёмки работ каждый раз меняется.",["Процедура приёмки не закреплена","Участники проводят проверки несогласованно","Установить регламент с этапами и ответственными"],"Регламент задаёт стабильный порядок процесса."],["Техническое задание","Стас попросил подготовить презентацию без объяснения её цели.",["Поручение на презентацию получено","Цель и аудитория пока не обозначены","Согласовать техническое задание и ожидаемый результат"],"Уточнение исходных требований экономит время на переделки."]];
 const app=document.getElementById("app");
 const KEY="rukovoditel-trainer-v1";
 const today=()=>new Intl.DateTimeFormat("sv-SE",{timeZone:"Europe/Moscow",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
@@ -199,7 +200,7 @@ let data={version:1,history:[],sequence:0};
 try{const d=JSON.parse(localStorage.getItem(KEY)||"null");if(d&&Array.isArray(d.history)){data=d;data.sequence=Number(data.sequence)||0;}}catch(e){}
 const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}};
 let selectedMode="mix",session=null,current=null,lastKeys=[],page="home";
-const labelMode={mix:"Смешанная тренировка",quiz:"Выбери термин",fill:"Вставь слово",card:"Карточка",phrase:"Точная формулировка"};
+const labelMode={mix:"Смешанная тренировка",quiz:"Выбери термин",fill:"Вставь слово",card:"Карточка",phrase:"Точная формулировка",logic:"Логическая цепочка"};
 const dayNumber=day=>Math.floor(Date.parse(day+"T00:00:00Z")/86400000);
 function learningState(id){
  const h=historyOf(id),last=h.length?h[h.length-1]:null;
@@ -211,7 +212,7 @@ function learningState(id){
 }
 function historyOf(id){return data.history.filter(a=>a.id===id)}
 function analysis(){
- const graded=data.history.filter(a=>a.type==="quiz"||a.type==="fill");
+ const graded=data.history.filter(a=>a.type==="quiz"||a.type==="fill"||a.type==="logic");
  const correct=graded.filter(a=>a.ok).length;
  const weak=TERMS.map(t=>{
   const items=historyOf(t[0]);const bad=items.filter(x=>!x.ok).length,good=items.filter(x=>x.ok).length;
@@ -225,7 +226,7 @@ function analysis(){
  function dkey(z){return z.toISOString().slice(0,10)}
  if(!dates.has(dkey(utc3Date)))utc3Date.setUTCDate(utc3Date.getUTCDate()-1);
  while(dates.has(dkey(utc3Date))){streak++;utc3Date.setUTCDate(utc3Date.getUTCDate()-1)}
- const byType=["fill","quiz","card","phrase"].map(type=>{
+ const byType=["fill","quiz","logic","card","phrase"].map(type=>{
   const items=data.history.filter(a=>a.type===type);
   return {type,n:items.length,ok:items.filter(a=>a.ok).length};
  });
@@ -298,6 +299,7 @@ function renderHome(){
  '<div class="section-title">Режим занятий</div>'+
  '<div class="modes">'+
  modeButton("mix","Смешанная","Все упражнения по очереди")+
+ modeButton("logic","Логические цепочки","Факт → смысл → действие")+
  modeButton("fill","Вспомнить слово","Ввести термин без подсказок")+
  modeButton("quiz","Выбрать термин","Четыре близких варианта")+
  modeButton("phrase","Сказать профессионально","Коротко сформулировать мысль")+
@@ -312,9 +314,9 @@ function modeButton(id,title,detail){
  return '<button class="mode '+(selectedMode===id?"active":"")+'" data-mode="'+id+'"><b>'+title+'</b><small>'+detail+'</small></button>';
 }
 function modeOfNext(){
- if(session?.reviewOnly)return ["fill","quiz","fill","card","fill","quiz","fill","phrase"][session.n%8];
+ if(session?.reviewOnly)return ["fill","quiz","logic","fill","card","fill","quiz","phrase","logic","fill"][session.n%10];
  if(selectedMode!=="mix")return selectedMode;
- return ["fill","quiz","phrase","fill","quiz","fill","card","phrase","fill","quiz","fill","phrase","quiz","fill","card","fill","phrase","quiz","fill","phrase"][session.n%20];
+ return ["fill","logic","quiz","phrase","fill","card","logic","fill","phrase","quiz","fill","logic","phrase","fill","quiz","card","logic","fill","phrase","fill"][session.n%20];
 }
 function scoreFor(id,type){
  const h=historyOf(id),bad=h.filter(x=>!x.ok).length,good=h.filter(x=>x.ok).length,last=h.length?h[h.length-1]:null;
@@ -329,14 +331,17 @@ function scoreFor(id,type){
 }
 function pickNext(){
  const type=modeOfNext();let item=null;
- if(type==="phrase"){
+ if(type==="logic"){
+ const candidates=CHAINS.map((c,i)=>({type,id:"Логика: "+c[0],key:"l"+i,chain:c,score:scoreFor("Логика: "+c[0],type)+(session?.seenKeys?.includes("l"+i)?-180:0)}));
+ candidates.sort((a,b)=>b.score-a.score);item=candidates[0];
+ }else if(type==="phrase"){
  const candidates=PHRASES.map((p,i)=>({type,id:p[2],key:"p"+i,phrase:p,score:scoreFor(p[2],type)+(session?.seenKeys?.includes("p"+i)?-135:0)+Math.random()*4}));
  candidates.sort((a,b)=>b.score-a.score);item=candidates.find(x=>!lastKeys.includes(x.key))||candidates[0];
  }else{
  const candidates=TERMS.map((t,i)=>({type,id:t[0],key:t[0],term:t,score:scoreFor(t[0],type)+(i%4)*.1}));
  candidates.sort((a,b)=>b.score-a.score);item=candidates[0];
  }
- current={...item,done:false,revealed:false,input:"",ok:false,choice:null,hintLevel:0,draft:""};
+ current={...item,done:false,revealed:false,input:"",ok:false,choice:null,hintLevel:0,draft:"",order:[]};
  session.seenIds??=[];session.seenIds.push(item.id);
  session.seenKeys??=[];session.seenKeys.push(item.key);
  session.seenIds??=[];session.seenIds.push(item.id);
@@ -350,7 +355,21 @@ function renderTask(){
  const q=current;if(!q){renderEnd();return}
  const t=q.term;const frac=Math.round(session.n/session.limit*100);
  let content="";
- if(q.type==="quiz"){
+ if(q.type==="logic"){
+ const c=q.chain;
+ if(!q.shuffle){q.shuffle=[0,1,2].sort(()=>Math.random()-.5);}
+ const chosen=q.order, used=new Set(chosen);
+ content='<div class="topic">Логическая цепочка · '+safe(c[0])+'</div>'+
+ '<div class="qtitle">«'+safe(c[1])+'»</div>'+
+ '<p class="context">Расположи мысли в порядке <b>факт → смысл → действие</b>. Выбирай утверждения последовательно.</p>'+
+ '<div class="answers">'+chosen.map((i,n)=>'<div class="hint"><b>'+(n+1)+'.</b> '+safe(c[2][i])+'</div>').join("")+
+ (!q.done?q.shuffle.filter(i=>!used.has(i)).map(i=>'<button class="option" data-step="'+i+'">'+safe(c[2][i])+'</button>').join(""):'')+'</div>'+
+ (!q.done?'<div class="actions">'+(chosen.length?'<button class="secondary" data-action="undo-step">Убрать последний</button>':'')+
+ (chosen.length===3?'<button class="primary" data-action="check-logic">Проверить порядок</button>':'')+'</div>':
+ '<div class="feedback"><b>'+(q.ok?'Верная последовательность':'Есть ошибка в последовательности')+'</b>'+
+ '<div class="explain">'+c[2].map((x,i)=>'<p><b>'+(i+1)+'. '+["Факт","Смысл","Действие"][i]+':</b> '+safe(x)+'</p>').join("")+
+ '<p class="mini">'+safe(c[3])+'</p></div></div>');
+ }else if(q.type==="quiz"){
  const target=t[0]; let options=TERMS.filter(x=>x[0]!==target&&x[1]===t[1]).sort(()=>Math.random()-.5).slice(0,3);
  if(options.length<3)options=options.concat(TERMS.filter(x=>x[0]!==target&&x[1]!==t[1]).slice(0,3-options.length));
  const choices=[target,...options.map(x=>x[0])].sort(()=>Math.random()-.5);
@@ -367,8 +386,7 @@ function renderTask(){
  '<p class="context">Попробуй самостоятельно вспомнить одно точное название для этого определения.</p><div class="actions"><button class="primary" data-action="reveal">Узнать термин и объяснение</button></div>');
  }else if(q.type==="phrase"){
  const hint1='<div class="hint"><b>Шаг 1 · О чём главное?</b> Тема — '+safe(q.phrase[2])+'. Скажи, что произошло или что требуется.</div>';
- const head=q.phrase[1].split(/\s+/).slice(0,4).join(" ");
- const hint2='<div class="hint"><b>Шаг 2 · Как построить фразу?</b> Факт → причина (если есть) → следующий шаг. Можно начать: «'+safe(head)+'…». Это подсказка, не обязательный шаблон.</div>';
+ const hint2='<div class="hint"><b>Шаг 2 · Логика предложения</b> Сначала сообщи факт. Затем объясни причину или последствия, если они важны. В конце назови следующий шаг. Используй короткие конструкции: «Выявлено…», «Это влияет на…», «Предлагаю…».</div>';
  content='<div class="topic">Тренировка точной речи</div><div class="qtitle">«'+safe(q.phrase[0])+'»</div>'+
  '<p class="context">Не усложняй язык. Сохрани смысл и попробуй сказать короче, используя один точный рабочий термин.</p>'+
  (!q.revealed?
@@ -418,6 +436,8 @@ app.addEventListener("click",e=>{
  if(a.dataset.action==="report"){renderReport();return}
  if(a.dataset.action==="copy-report"){copyReport();return}
  if(a.dataset.action==="export"){saveReport();return}
+ if(a.dataset.action==="undo-step"&&current?.type==="logic"&&!current.done){current.order.pop();renderTask();return}
+ if(a.dataset.action==="check-logic"&&current?.type==="logic"&&!current.done&&current.order.length===3){logAnswer(current.order.every((n,i)=>n===i),current.order.map(i=>current.chain[2][i]).join(" → "));return}
  if(a.dataset.action==="next"){session.n++;if(session.n>=session.limit){current=null;renderEnd();}else{pickNext();renderTask();}return}
  if(a.dataset.action==="reveal"){current.revealed=true;renderTask();return}
  if(a.dataset.action==="dontknow"&&current&&!current.done&&current.type==="fill"){logAnswer(false,"Не помню");return}
@@ -425,6 +445,7 @@ app.addEventListener("click",e=>{
    current.hintLevel=Math.min(2,(current.hintLevel||0)+1);renderTask();return;
  }
  }
+ const step=e.target.closest("[data-step]");if(step&&current?.type==="logic"&&!current.done){const n=Number(step.dataset.step);if(!current.order.includes(n)&&current.order.length<3){current.order.push(n);renderTask();}return}
  const choice=e.target.closest("[data-answer]");if(choice&&current&&!current.done&&current.type==="quiz"){current.choice=choice.dataset.answer;logAnswer(current.choice===current.term[0],current.choice);return}
  const rate=e.target.closest("[data-rate]");if(rate&&current&&!current.done){logAnswer(rate.dataset.rate==="true",current.input);return}
 });
