@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5f8f2">
+<meta name="description" content="Пошаговое обучение речи: сначала слова, затем предложения и чтение вслух.">
+<title>Путь обучения — Речь руководителя</title>
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<style>
+:root{font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#233c36;background:#f5f8f2}
+*{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{cursor:pointer}
+a{color:#28644c}.shell{width:min(900px,calc(100% - 30px));margin:auto;padding:20px 0 80px}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:25px}
+.brand{font-weight:800;letter-spacing:-.025em}.sub{font-size:12px;color:#718278}
+.logo{display:grid;place-items:center;background:#244b3e;color:white;border-radius:14px;width:43px;height:43px;font-weight:800}
+.back{margin-left:auto;font-size:13px;text-decoration:none;font-weight:700}
+.hero{position:relative;overflow:hidden;border-radius:28px;padding:30px 30px 25px;background:linear-gradient(128deg,#e0f3df,#e7f0ff 70%,#fff3d6);border:1px solid #d4e8d7}
+.illustration{position:absolute;right:27px;top:31px;font-size:70px;transform:rotate(-8deg);filter:drop-shadow(0 9px 4px #759d8b33)}
+h1{font-size:clamp(28px,5vw,44px);letter-spacing:-.045em;line-height:1.1;margin:8px 80px 12px 0}
+.lead{color:#536d60;max-width:620px;margin:0;font-size:15px}
+.eyebrow{font-size:11px;font-weight:850;color:#3f8262;letter-spacing:.11em;text-transform:uppercase}
+.hero-foot{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px}.chip{border-radius:50px;background:#ffffffa8;padding:7px 12px;font-size:12px;font-weight:700;color:#416151}
+.progress{height:11px;background:#dbe8de;border-radius:50px;overflow:hidden;margin:18px 0 5px}
+.progress>div{background:linear-gradient(90deg,#46af78,#287a56);height:100%;border-radius:50px;transition:width .25s}
+.section-title{font-size:19px;font-weight:800;letter-spacing:-.025em;margin:28px 0 14px}
+.path{display:grid;gap:13px}
+.level{position:relative;width:100%;display:flex;align-items:center;text-align:left;gap:16px;border:1px solid #dce7dc;border-radius:20px;background:white;padding:17px;box-shadow:0 7px 24px #315b4020;min-height:107px}
+.level:not(:disabled):hover{border-color:#67ae84;transform:translateY(-1px)}.level:disabled{opacity:.58;cursor:not-allowed;box-shadow:none}
+.level .emoji{display:grid;place-items:center;background:#eef6e9;border-radius:17px;width:66px;min-width:66px;height:66px;font-size:30px}
+.level:nth-child(even) .emoji{background:#eaf1ff}.level b{display:block;font-size:17px}.level small{display:block;color:#708174;font-size:13px;margin-top:4px;line-height:1.5}
+.level .status{margin-left:auto;font-size:12px;font-weight:750;color:#4c8866;white-space:nowrap}
+.hint{font-size:13px;color:#6b7e72;margin:18px 0}
+.panel{background:white;border:1px solid #dde8df;border-radius:24px;padding:clamp(20px,4vw,38px);box-shadow:0 10px 30px #3557430c}
+.lesson-hero{font-size:56px;line-height:1.1;margin:7px 0 12px}.word{font-size:clamp(30px,5vw,45px);line-height:1.2;letter-spacing:-.05em;margin:12px 0}
+.definition{font-size:clamp(18px,3vw,22px);line-height:1.55;color:#3e5549}
+.example{padding:15px;background:#eff6f0;border-radius:13px;font-size:15px;margin-top:21px}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}
+.primary{border:1px solid #227d55;background:#238a5e;color:white;font-weight:800;padding:13px 19px;border-radius:13px;min-height:49px}
+.primary:hover{background:#176c48}.secondary{border:1px solid #d7e5d7;background:#fff;color:#315845;font-weight:700;padding:12px 17px;border-radius:13px;min-height:47px}
+.primary:disabled,.secondary:disabled{opacity:.55;cursor:not-allowed}
+.choice{display:block;width:100%;text-align:left;padding:14px 16px;margin:10px 0;border-radius:13px;background:#f9fbf7;border:1px solid #dbe5d8;color:#253c32;line-height:1.55}
+.choice:hover{background:#e9f6eb;border-color:#8db99b}
+.field{width:100%;border-radius:12px;border:2px solid #d4e3d4;background:#f9fcf9;padding:14px 16px;font-size:20px;margin-top:12px}
+.feedback{border-radius:12px;padding:12px 15px;background:#fff3dc;color:#785227;font-weight:600;margin-top:13px;line-height:1.6}
+.feedback.good{background:#e8f6ea;color:#256a46}.mini{font-size:13px;color:#76867a;line-height:1.6}
+.reading{background:#f5faf5;border:1px solid #e0eadf;border-radius:16px;padding:21px;font-size:clamp(18px,3vw,23px);line-height:1.8;white-space:pre-line;margin:17px 0}
+.audio{padding:16px;border:1px solid #dbe8df;background:#f7faf7;border-radius:16px;margin:16px 0}
+.audio audio{display:block;width:100%;margin-top:13px}.audio .voice-heading{font-weight:800;font-size:13px}.audio .voice-controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
+.audio .voice-controls button{border:1px solid #cde0d0;background:white;padding:11px 13px;border-radius:11px;font-weight:700}
+.audio .mini{margin-bottom:5px}.audio .recording-indicator{color:#b34a37}
+.score{margin-top:14px;padding:13px;border-radius:12px;background:#e9f4eb;color:#2c5d45}
+.breadcrumb{display:flex;justify-content:space-between;gap:12px;color:#728576;font-size:12px;margin:0 0 16px}
+nav.footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:15px;margin-top:25px;font-size:13px}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #8ac59e;outline-offset:3px}
+@media(max-width:600px){.hero{padding:23px 19px}.illustration{right:14px;top:25px;font-size:49px;opacity:.72}h1{margin-right:55px}.level .emoji{width:51px;height:51px;min-width:51px;font-size:25px}.level{padding:12px;gap:12px}.level .status{font-size:11px}.actions button{flex:1}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header class="top"><div class="logo">Р</div><div><div class="brand">Речь руководителя<div class="sub">Пошаговая программа</div></div></div><a class="back" href="./index.html">Все упражнения</a></header>
+<main id="app"></main>
+<nav class="footer"><a href="./reading.html">Библиотека чтения</a><a href="./index.html">Старый тренажёр и журнал</a></nav>
+</div>
+<script src="./voice.js"></script><script src="./reading.js"></script>
+<script>
+(function(){
+"use strict";
+const levels=[
+ {name:"Новичок",emoji:"🌱",desc:"Пойми простые слова. Не нужно составлять сложные предложения.",terms:[
+ ["Дефект","Недостаток или ошибка в выполненной работе.","На стене обнаружен дефект."],
+ ["Срок","Дата или время, к которым нужно закончить работу.","Уточни срок исправления."],
+ ["Этап","Отдельная часть большой работы.","Первый этап завершён."],
+ ["Результат","То, что получилось после выполненных действий.","Проверим результат после окраски."]],
+ sentence:"Мы обнаружили ___ на окрашенной стене.",answer:"дефект",
+ read:"Есть дефект на стене. Нужно его исправить. После исправления проверим результат."},
+ {name:"Уверенный специалист",emoji:"🧩",desc:"Узнавай рабочие термины и используй их в коротких фразах.",terms:[
+ ["Фронт работ","Участок, подготовленный для начала конкретных работ.","Фронт работ для маляров пока не готов."],
+ ["Смежные работы","Работы других исполнителей, от которых зависит твоя работа.","Электрика и покраска — смежные работы."],
+ ["Приёмка","Проверка готового результата перед его принятием.","После исправлений проведём приёмку."],
+ ["План-факт","Сравнение того, сколько собирались сделать и сколько сделали.","Сверим план-факт за неделю."]],
+ sentence:"Электрики ещё работают, поэтому ___ для маляров не готов.",answer:"фронт работ",
+ read:"Маляры закончили подготовку стен. Следующий этап — покраска. Сначала необходимо проверить готовность фронта работ. После завершения работ проведём приёмку."},
+ {name:"Опытный специалист",emoji:"🔍",desc:"Учись связывать проблему, причину и решение.",terms:[
+ ["Корректирующие действия","Меры, которые устраняют причину проблемы и помогают избежать её повторения.","После выяснения причин определим корректирующие действия."],
+ ["График работ","План последовательности работ и их сроков.","Проверим график работ перед началом следующего этапа."],
+ ["Ресурсы","Люди, материалы, оборудование и время, необходимые для работы.","Для завершения этапа нужно проверить ресурсы."],
+ ["Риск","То, что может пойти не так и повлиять на результат.","Задержка поставки — риск для сроков."]],
+ sentence:"Нехватка материалов создаёт ___ задержки работ.",answer:"риск",
+ read:"По окрашенным поверхностям выявлены дефекты. Нужно установить причины и определить корректирующие действия. Затем уточним необходимые ресурсы и проверим график работ. Это поможет снизить риск повторной задержки."},
+ {name:"Руководитель",emoji:"🧭",desc:"Ставь задачи, говори о сроках и объясняй решения.",terms:[
+ ["Делегирование","Передача задачи другому человеку с необходимыми полномочиями.","Проверку участка можно делегировать мастеру."],
+ ["Полномочия","Право принимать решения в установленных пределах.","Мастер должен понимать свои полномочия."],
+ ["Ответственный","Человек, который отвечает за выполнение задачи.","Назначим ответственного за устранение дефекта."],
+ ["Согласование","Подтверждение решения всеми участниками, чьё одобрение требуется.","Изменение сроков требует согласования."]],
+ sentence:"За устранение дефекта необходимо назначить ___ .",answer:"ответственного",
+ read:"Входная группа и санузлы находятся на завершающем этапе. По окрашенным поверхностям выявлены отдельные дефекты. Назначим ответственных и согласуем сроки их исправления. После проверки результата передадим готовые помещения на приёмку."},
+ {name:"Профессионал",emoji:"🏆",desc:"Аргументируй решения и готовь связные выступления.",terms:[
+ ["Критический путь","Цепочка зависимых работ, которая определяет минимальный срок завершения проекта.","Задержка на критическом пути может сдвинуть сдачу."],
+ ["Кассовый разрыв","Временная нехватка денег для платежей, даже если проект в целом прибыльный.","Поступление оплаты задержалось и возник кассовый разрыв."],
+ ["Накладные расходы","Затраты на организацию и обеспечение работы, не относимые напрямую к отдельной операции.","При расчёте стоимости учитываем накладные расходы."],
+ ["Управленческое решение","Выбор конкретного действия руководителем на основе информации и последствий.","Для устранения проблемы требуется управленческое решение."]],
+ sentence:"Задержка операции на ___ может изменить дату сдачи объекта.",answer:"критическом пути",
+ read:"По итогам осмотра подтверждена готовность основных помещений. Сохраняются замечания к окрашенным поверхностям и отдельные незавершённые смежные работы. Предлагаю закрепить ответственных, согласовать сроки устранения и проверить влияние этих позиций на критический путь. После этого представим обновлённый прогноз завершения проекта и согласуем дальнейшие действия."}
+];
+const KEY="rukovoditel-course-v1";
+const app=document.getElementById("app");
+const esc=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&quot;","'":"&#39;"}[c]));
+const norm=s=>String(s||"").trim().toLowerCase().replaceAll("ё","е").replace(/[.,!?;:«»"']/g,"").replace(/\s+/g," ");
+let state;let chosen=null;let message="";let transcript="";let readAnalysis=null;
+function load(){
+ try{
+ const d=JSON.parse(localStorage.getItem(KEY)||"null");
+ if(d&&Array.isArray(d.done)&&d.progress&&typeof d.progress==="object")return d;
+ }catch(e){}
+ return {done:[],progress:{},readingHistory:[]};
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){message="Не удалось сохранить прогресс: проверь настройки браузера."}}
+state=load();
+function unlocked(i){return i===0||!!state.done[i-1]}
+function pos(i){return Math.max(0,Number(state.progress[i])||0)}
+function stage(i){const n=levels[i].terms.length;return pos(i)<n*3?"word":pos(i)===n*3?"sentence":"reading"}
+function stepLabel(i){const n=levels[i].terms.length;const p=pos(i);return p<n*3?"Слово "+(Math.floor(p/3)+1)+" из "+n:p===n*3?"Собираем предложение":"Чтение вслух"}
+function viewHome(){
+ chosen=null;message="";window.TrainerVoice.reset();
+ const done=state.done.filter(Boolean).length;
+ app.innerHTML='<section class="hero"><div class="eyebrow">Учимся от простого к сложному</div><div class="illustration" aria-hidden="true">📚✨</div><h1>Сначала слово.<br>Потом речь.</h1><p class="lead">Каждое новое слово сначала объясняется. Затем ты выбираешь его значение, вспоминаешь самостоятельно и только после этого переходишь к предложениям и чтению.</p><div class="hero-foot"><span class="chip">5 уровней</span><span class="chip">Без перегруза</span><span class="chip">Голос и чтение</span></div></section>'+
+ '<div class="section-title">Твой путь · '+done+' из 5 уровней</div><div class="progress"><div style="width:'+(done*20)+'%"></div></div>'+
+ '<section class="path">'+levels.map((l,i)=>'<button class="level" data-level="'+i+'" '+(!unlocked(i)?'disabled aria-label="Уровень пока закрыт"':'')+'><span class="emoji" aria-hidden="true">'+l.emoji+'</span><span><b>'+(i+1)+'. '+esc(l.name)+'</b><small>'+esc(l.desc)+'</small></span><span class="status">'+(state.done[i]?'✓ Пройден':!unlocked(i)?'🔒 Закрыт':pos(i)?'Продолжить':'Начать')+'</span></button>').join("")+'</section>'+
+ '<p class="hint">Уровень открывается после правильных ответов на слова и завершения чтения. Прошлые 198 ответов и записи прежнего тренажёра не удаляются.</p>'+
+ '<div class="actions"><button class="secondary" data-act="restart">Начать курс сначала</button><a class="secondary" href="./index.html" style="text-decoration:none">Старый тренажёр</a></div>';
+}
+function openLevel(i){
+ if(!unlocked(i))return;
+ if(chosen!==null)window.TrainerVoice.reset();
+ chosen=i;message="";transcript="";readAnalysis=null;
+ if(state.done[i]){state.progress[i]=0;save()}
+ viewLesson();
+}
+function move(){state.progress[chosen]=pos(chosen)+1;message="";save();window.TrainerVoice.reset();transcript="";readAnalysis=null;viewLesson()}
+function viewLesson(){
+ if(chosen===null){viewHome();return}
+ const l=levels[chosen],p=pos(chosen),n=l.terms.length,kind=stage(chosen);
+ const meter=Math.round(p/(3*n+2)*100);
+ let body="";
+ if(kind==="word"){
+  const t=l.terms[Math.floor(p/3)],phase=p%3;
+  if(phase===0){
+   body='<div class="lesson-hero" aria-hidden="true">💡</div><div class="eyebrow">Узнай новое слово</div><h2 class="word">'+esc(t[0])+'</h2><p class="definition">'+esc(t[1])+'</p>'+
+   '<div class="example"><b>Пример из работы:</b> '+esc(t[2])+'</div>'+
+   '<div class="actions"><button class="primary" data-act="next">Понял значение →</button></div>';
+  }else if(phase===1){
+   const other1=l.terms[(Math.floor(p/3)+1)%n][1];
+   const other2=l.terms[(Math.floor(p/3)+2)%n][1];
+   const options=[t[1],other1,other2];
+   const shift=Math.floor(p/3)%3;
+   const rotated=options.slice(shift).concat(options.slice(0,shift));
+   body='<div class="lesson-hero" aria-hidden="true">🧠</div><div class="eyebrow">Проверь понимание</div><h2 class="word">'+esc(t[0])+'</h2><p class="definition">Что означает это слово?</p>'+
+   rotated.map(o=>'<button class="choice" data-choice="'+(o===t[1]?'yes':'no')+'">'+esc(o)+'</button>').join("")+
+   (message?'<div class="feedback">'+esc(message)+'</div>':'');
+  }else{
+   body='<div class="lesson-hero" aria-hidden="true">✍️</div><div class="eyebrow">Вспомни слово без подсказки</div><p class="definition">'+esc(t[1])+'</p>'+
+   '<label for="recall" class="mini">Как называется это понятие? Напиши слово или словосочетание.</label>'+
+   '<input class="field" id="recall" autocomplete="off" placeholder="Твой ответ"><div class="actions"><button class="primary" data-act="recall">Проверить слово</button><button class="secondary" data-act="hint">Подсказка</button></div>'+
+   (message?'<div class="feedback">'+esc(message)+'</div>':'');
+  }
+ }else if(kind==="sentence"){
+  body='<div class="lesson-hero" aria-hidden="true">🧩</div><div class="eyebrow">Теперь короткое предложение</div><p class="definition">'+esc(l.sentence)+'</p>'+
+  '<p class="mini">Все нужные слова ты уже изучил. Подставь подходящее слово или словосочетание.</p><input class="field" id="sentence" autocomplete="off" placeholder="Пропущенное слово">'+
+  '<div class="actions"><button class="primary" data-act="sentence">Проверить</button><button class="secondary" data-act="sentence-hint">Подсказка</button></div>'+
+  (message?'<div class="feedback">'+esc(message)+'</div>':'');
+ }else{
+  const v=window.TrainerVoice.state();
+  body='<div class="lesson-hero" aria-hidden="true">🎙️</div><div class="eyebrow">Чтение вслух · уровень '+(chosen+1)+'</div>'+
+   '<p class="mini">Прочитай текст спокойно. Запиши голос и прослушай его. Если распознавание поддерживается, увидишь примерное совпадение слов. Запись необязательна для завершения уровня.</p>'+
+   '<div class="reading">'+esc(l.read)+'</div><div class="audio">'+window.TrainerVoice.box({record:true,dictate:false})+'</div>'+
+   (readAnalysis?'<div class="score">'+(readAnalysis.available?'Совпадение распознанных слов: <b>'+readAnalysis.coverage+'%</b>. Примерный темп: '+(readAnalysis.rate||"—")+' слов/мин.':'Распознавание недоступно. Оцени чтение по записи самостоятельно.')+'<div class="mini">Это не оценка дикции, произношения или уверенности.</div></div>':'')+
+   '<div class="actions">'+(v.blob?'<button class="secondary" data-act="assess">Сравнить с текстом</button>':'')+
+   '<button class="primary" data-act="finish">Завершить уровень ✓</button></div>';
+ }
+ app.innerHTML='<div class="breadcrumb"><span>Уровень '+(chosen+1)+' из 5 · '+esc(l.name)+'</span><span>'+stepLabel(chosen)+'</span></div>'+
+ '<div class="progress"><div style="width:'+meter+'%"></div></div><div class="panel">'+body+'</div>'+
+ '<div class="actions"><button class="secondary" data-act="home">← К карте уровней</button></div>';
+}
+function checkedWord(v,expected){return norm(v)===norm(expected)}
+function finish(){
+ const v=window.TrainerVoice.state();
+ const a=window.TrainerReading.analyze(levels[chosen].read,v.transcript||transcript,v.durationMs);
+ state.done[chosen]=true;
+ if(!Array.isArray(state.readingHistory))state.readingHistory=[];
+ state.readingHistory.push({level:chosen+1,at:new Date().toISOString(),clipId:v.clipId||null,coverage:a.available?a.coverage:null});
+ state.progress[chosen]=0;save();window.TrainerVoice.reset();
+ const name=levels[chosen].name;const next=chosen+1;
+ chosen=null;
+ app.innerHTML='<div class="panel" style="text-align:center"><div class="lesson-hero" aria-hidden="true">🎉</div><div class="eyebrow">Уровень завершён</div><h1 style="margin:12px 0">'+esc(name)+'</h1>'+
+ '<p class="definition">Ты последовательно прошёл слова, их значения, самостоятельное вспоминание, предложение и чтение.</p>'+
+ '<div class="actions" style="justify-content:center"><button class="primary" data-act="home">К карте уровней</button>'+
+ (next<levels.length?'<button class="secondary" data-next="'+next+'">Следующий уровень →</button>':'')+'</div></div>';
+}
+app.addEventListener("click",e=>{
+ const target=e.target.closest("button");if(!target)return;
+ if(target.hasAttribute("data-level")){openLevel(Number(target.dataset.level));return}
+ if(target.hasAttribute("data-next")){openLevel(Number(target.dataset.next));return}
+ if(target.hasAttribute("data-choice")){
+  if(target.dataset.choice==="yes")move();else{message="Почти. Попробуй другой вариант — можно посмотреть определение ещё раз на предыдущем этапе.";viewLesson()}
+  return;
+ }
+ const act=target.dataset.act||target.dataset.action||"";
+ if(act==="home"){viewHome();return}
+ if(act==="restart"){
+  if(confirm("Начать курс с первого уровня? Старый журнал тренировок и аудиозаписи останутся без изменений.")){
+   state={done:[],progress:{},readingHistory:Array.isArray(state.readingHistory)?state.readingHistory:[]};save();viewHome();
+  }return;
+ }
+ if(chosen===null)return;
+ if(act==="next"){move();return}
+ if(act==="hint"){
+  message="Подсказка: первая буква — «"+levels[chosen].terms[Math.floor(pos(chosen)/3)][0][0]+"».";
+  viewLesson();return;
+ }
+ if(act==="recall"){
+  const input=document.getElementById("recall");
+  const term=levels[chosen].terms[Math.floor(pos(chosen)/3)][0];
+  if(checkedWord(input?.value,term)){move()}else{message="Пока не совпало. Вернись к значению: "+levels[chosen].terms[Math.floor(pos(chosen)/3)][1];viewLesson()}
+  return;
+ }
+ if(act==="sentence-hint"){message="Это слово из списка текущего уровня. Первая буква — «"+levels[chosen].answer[0]+"».";viewLesson();return}
+ if(act==="sentence"){
+  const v=document.getElementById("sentence")?.value;
+  if(checkedWord(v,levels[chosen].answer))move();else{message="Подумай, какое из изученных слов подходит по смыслу. При необходимости открой подсказку.";viewLesson()}
+  return;
+ }
+ if(act==="voice-record"){window.TrainerVoice.record(()=>viewLesson(),null,s=>{transcript=s});return}
+ if(act==="voice-stop"){window.TrainerVoice.stop(()=>viewLesson());return}
+ if(act==="voice-download"){window.TrainerVoice.download();return}
+ if(act==="assess"){
+  const v=window.TrainerVoice.state();
+  readAnalysis=window.TrainerReading.analyze(levels[chosen].read,v.transcript||transcript,v.durationMs);
+  viewLesson();return;
+ }
+ if(act==="finish"){finish();return}
+});
+app.addEventListener("keydown",e=>{
+ if(e.key==="Enter"&&e.target.id==="recall"){e.preventDefault();app.querySelector('[data-act="recall"]')?.click()}
+ if(e.key==="Enter"&&e.target.id==="sentence"){e.preventDefault();app.querySelector('[data-act="sentence"]')?.click()}
+});
+viewHome();
+})();
+</script>
+</body>
+</html>
