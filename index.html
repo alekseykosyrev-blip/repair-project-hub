@@ -57,6 +57,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 .reading-entry h2{margin:9px 0 10px;font-size:24px;letter-spacing:-.03em}
 .reading-entry p{line-height:1.65;color:#637368;font-size:14px;margin:0 0 17px}
 .reading-entry .primary{box-shadow:none}
+.reading-main-link{display:inline-block;background:#24493f;color:white;text-decoration:none;border-radius:12px;font-weight:750;padding:15px 20px;min-height:50px}.reading-main-link:hover{background:#17392e}.reading-main-link:focus-visible{outline:3px solid #abc8bd;outline-offset:3px}
 .reading-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .reading-choice{min-height:100px}
 .reading-choice .reading-preview{display:block;color:#718277;font-size:12px;line-height:1.5;margin-top:8px}
@@ -331,7 +332,7 @@ function renderHome(){
  modeButton("card","Карточки","Вспомнить определение")+
  modeButton("dictate","Голосовой ответ","Надиктуй термин или формулировку")+
  '</div>'+
- '<section class="reading-entry"><div class="eyebrow">Отдельная тренировка</div><h2>Чтение вслух и разбор речи</h2><p>Прочитай профессиональный доклад, запиши голос и прослушай себя. При поддержке браузера сравним распознанные слова с текстом и определим приблизительный темп чтения.</p><button class="primary" data-action="reading-home">Перейти к чтению</button></section>'+
+ '<section class="reading-entry"><div class="eyebrow">Отдельная тренировка</div><h2>Чтение вслух и разбор речи</h2><p>Прочитай профессиональный доклад, запиши голос и прослушай себя. При поддержке браузера сравним распознанные слова с текстом и определим приблизительный темп чтения.</p><a class="reading-main-link" href="./reading.html">Перейти к тренировке чтения</a></section>'+
  (s.weak.length?'<div class="section-title">Стоит повторить</div><div class="weak">'+s.weak.slice(0,5).map(x=>'<span class="pill">'+safe(x.term)+'</span>').join("")+'</div>':"")+
  '<div class="actions">'+(s.weak.length?'<button class="secondary" data-action="review">Повторить сложное · 20 заданий</button>':'')+'<button class="secondary" data-action="report">Журнал и анализ ответов</button></div>'+
  '<p class="mini">На повторение сегодня: '+due+' терминов · закреплено в разные дни: '+mastered+'.</p>'+
