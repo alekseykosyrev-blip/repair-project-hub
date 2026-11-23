@@ -169,6 +169,33 @@ const SHOP=[["blue","🌊 Синяя тема","Оформление в спок
 function shopHTML(){return '<section class="shop"><h2>🛍 Магазин достижений</h2><p>За правильные ответы получай монеты и выбирай награды. Покупки не влияют на оценки и открытие уровней.</p><div class="shop-grid">'+SHOP.map(x=>{const owned=state.purchases.includes(x[0]);return '<div class="shop-item"><b>'+x[1]+'</b><small>'+x[2]+'</small><button class="secondary" data-buy="'+x[0]+'" '+(owned&&x[0]==="badge"?'disabled':'')+'>'+(owned?(x[0]==="badge"?"Получено ✓":state.theme===x[0]?"Активно ✓":"Применить"):"🪙 "+x[3])+'</button></div>'}).join("")+'</div>'+(state.purchases.includes("badge")?'<p>🏅 Твой значок: «Старательный»</p>':'')+(message?'<div class="feedback">'+esc(message)+'</div>':'')+'</section>'}
 syncWallet();
 
+const SPACING=[1,3,7,14,30];
+function wordDB(){if(!state.wordDB)state.wordDB={};return state.wordDB}
+function trackWord(i,j,success){
+ const key=i+":"+j,db=wordDB(),old=db[key]||{tries:0,streak:0,errors:0};
+ const streak=success?old.streak+1:0;
+ db[key]={tries:old.tries+1,streak,errors:old.errors+(success?0:1),due:success?Date.now()+SPACING[Math.min(streak-1,4)]*86400000:Date.now()};
+ save();
+}
+function reviewQueue(){
+ const db=wordDB(),items=[];
+ for(let i=0;i<levels.length;i++)for(let j=0;j<levels[i].terms.length;j++){const v=db[i+":"+j];if(v?.tries)items.push({i,j,...v})}
+ return items;
+}
+function reviewSummary(){
+ const all=reviewQueue(),due=all.filter(x=>x.due<=Date.now()),strong=all.filter(x=>x.streak>=3);
+ return '<section class="panel" style="margin-top:18px"><div class="eyebrow">Персональное закрепление</div><h2>🧠 Повторение слов</h2><p class="mini">Повторяй слова через 1, 3, 7, 14 и 30 дней. Ошибки возвращаются сразу. Ответы чередуются: самостоятельно вспомни слово или выбери по смыслу.</p><div class="hero-foot"><span class="chip">Изучалось: '+all.length+'/50</span><span class="chip">Повторить: '+due.length+'</span><span class="chip">Уверенно: '+strong.length+'</span></div><p class="mini">'+(due.length?'К повторению: '+due.slice(0,5).map(x=>esc(levels[x.i].terms[x.j][0])).join(' · '):'Сейчас повторений нет.')+'</p><div class="actions"><button class="primary" data-act="review-start" '+(!due.length?'disabled':'')+'>Повторить '+Math.min(due.length,8)+' слов</button></div></section>';
+}
+let review=null;
+function startReview(){const q=reviewQueue().filter(x=>x.due<=Date.now()).sort((a,b)=>a.due-b.due).slice(0,8);if(!q.length){viewHome();return}review={q,n:0,errors:0};chosen=null;message="";window.TrainerVoice.reset();renderReview()}
+function renderReview(){
+ const r=review;if(!r){viewHome();return}
+ const x=r.q[r.n];if(!x){review=null;viewHome();return}
+ const term=levels[x.i].terms[x.j],typed=r.n%2===0;
+ const choices=[term[0],...levels[x.i].terms.filter((t,j)=>j!==x.j).slice(0,3).map(t=>t[0])].sort((a,b)=>a.localeCompare(b));
+ app.innerHTML='<div class="breadcrumb"><span>Повторение без подсказки</span><span>'+(r.n+1)+' из '+r.q.length+'</span></div><div class="panel"><div class="lesson-hero">🔁</div><div class="eyebrow">'+(typed?'Вспомни термин':'Выбери термин')+'</div><p class="definition">'+esc(term[1])+'</p>'+(typed?'<input class="field" id="review-input" placeholder="Напиши термин"><div class="actions"><button class="primary" data-act="review-check">Проверить</button><button class="secondary" data-act="review-show">Показать ответ</button></div>':choices.map(t=>'<button class="choice" data-review-choice="'+(t===term[0]?'yes':'no')+'">'+esc(t)+'</button>').join(''))+(message?'<div class="feedback">'+esc(message)+'</div>':'')+'</div><div class="actions"><button class="secondary" data-act="home">← Закончить</button></div>';
+}
+function advanceReview(success){const r=review,x=r.q[r.n];trackWord(x.i,x.j,success&&!r.errors);r.n++;r.errors=0;message="";renderReview()}
 const CONTEXTS={"Дефект":"На новой окраске обнаружили пузырь и пятно. Как называется такой недостаток?","Срок":"Мастер спрашивает, к какому дню закончат исправление. Что нужно уточнить?","Этап":"Сначала подготовка, потом окраска. Как называется одна такая часть большой работы?","Результат":"Поверхность покрасили, теперь проверяют, что получилось. Как называется итог работы?","Замечание":"На осмотре указали на неровность стены. Как назвать это указание?","Проверка":"Мастер осматривает стену после исправления. Как называется такое действие?","Объём":"Нужно узнать, сколько квадратных метров стены окрашено. Что измеряют?","Причина":"Трещина появилась снова. Нужно выяснить, из-за чего. Что ищем?","Исправление":"Мастер устранил царапину и снова покрасил участок. Что он выполнил?","Задача":"Работнику поручили к вечеру завершить окраску двери. Что ему поставили?","Фронт работ":"Маляры ждут, пока электрики освободят помещение. Что ещё не подготовлено?","Смежные работы":"Штукатуры ждут окончания сантехнического монтажа. Как называются связанные работы других бригад?","Приёмка":"Результат проверяют перед передачей заказчику. Как называется эта процедура?","План-факт":"За неделю планировали 200 м², а сделали 160 м². Как называется такое сравнение?","Участок":"Бригада работает только в одной части здания. Как назвать эту часть объекта?","Подрядчик":"Организация выполняет отделку по договору. Как назвать её роль?","Готовность":"Нужно понять, можно ли уже предъявить помещение для проверки. Что оцениваем?","Отклонение":"Обещали закончить в понедельник, сделали в среду. Как называется разница с планом?","Контроль качества":"Проверяем, соответствует ли подготовка стен требованиям. Как называется такая проверка?","Ответственность":"Нужно определить, кто отвечает за результат работы. Что закрепляем?"};
 const PRACTICE_VER=2;
 function unlocked(i){return i===0||!!state.done[i-1]}
@@ -200,13 +227,13 @@ function stage(i){const p=levelState(i);return p.group>=3?(p.phase==="reading"?"
 function stepLabel(i){const l=levelState(i);if(l.group>=3)return l.phase==="reading"?"Чтение вслух":"Собираем предложение";const range=groupRange(i,l.group);if(l.phase==="study")return "Изучение: "+(l.studied+1)+" из "+range.length+" · набор "+(l.group+1)+"/3";return "Практика: "+(l.cursor+1)+" из "+deck(i,l.group).length+" · набор "+(l.group+1)+"/3"}
 function completedSteps(i){const l=levelState(i);let p=0;for(let g=0;g<Math.min(l.group,3);g++)p+=groupRange(i,g).length+deck(i,g).length;if(l.group<3)p+=l.phase==="study"?l.studied:groupRange(i,l.group).length+l.cursor;else p+=l.phase==="reading"?41:40;return Math.min(p,42)}
 function viewHome(){
- chosen=null;message="";window.TrainerVoice.reset();syncWallet();
+ chosen=null;review=null;message="";window.TrainerVoice.reset();syncWallet();
  const done=state.done.filter(Boolean).length;
  const totalProgress=levels.reduce((acc,l,i)=>acc+(state.done[i]?42:completedSteps(i)),0);
  app.innerHTML='<section class="hero"><div class="eyebrow">Учимся от простого к сложному</div><div class="illustration" aria-hidden="true">📚✨</div><h1>Сначала слово.<br>Потом речь.</h1><p class="lead">Изучаем несколько слов вместе, затем тренируем их вперемешку: смысл, рабочие ситуации, исправление ошибок и самостоятельное вспоминание. Ответ не следует сразу за подсказкой.</p><div class="hero-foot"><span class="chip">5 уровней</span><span class="chip">42 шага на уровень</span><span class="chip">Разные типы вопросов</span></div></section>'+
  '<div class="section-title">Твой путь · '+done+' из 5 уровней</div><div class="progress"><div style="width:'+Math.min(100,Math.round(totalProgress/210*100))+'%"></div></div>'+
  '<section class="path">'+levels.map((l,i)=>'<button class="level" data-level="'+i+'" '+(!unlocked(i)?'disabled aria-label="Уровень пока закрыт"':'')+'><span class="emoji" aria-hidden="true">'+l.emoji+'</span><span><b>'+(i+1)+'. '+esc(l.name)+'</b><small>'+esc(l.desc)+'</small></span><span class="status">'+(state.done[i]?'✓ Пройден':!unlocked(i)?'🔒 Закрыт':completedSteps(i)?'Продолжить':'Начать')+'</span></button>').join("")+'</section>'+
- '<p class="hint">В каждом уровне 10 слов в трёх наборах, 30 смешанных вопросов, короткое предложение и чтение. Старый прогресс и журнал сохранены; незавершённый урок по новой методике начинается с первого набора.</p>'+shopHTML()+
+ '<p class="hint">В каждом уровне 10 слов в трёх наборах, 30 смешанных вопросов, короткое предложение и чтение. Старый прогресс и журнал сохранены; незавершённый урок по новой методике начинается с первого набора.</p>'+reviewSummary()+shopHTML()+
  '<div class="actions"><button class="secondary" data-act="restart">Начать курс сначала</button><a class="secondary" href="./index.html" style="text-decoration:none">Старый тренажёр</a></div>';
 }
 function openLevel(i){
@@ -229,6 +256,7 @@ function nextStudy(){
 function nextPractice(successFirstTry){
  const l=levelState(chosen),task=deck(chosen,l.group)[l.cursor];
  if(successFirstTry)reward("v2:l"+chosen+":g"+l.group+":task"+l.cursor,task.kind==="recall"?3:2);
+ trackWord(chosen,task.idx,!!successFirstTry);
  l.cursor++;l.errors=0;message="";
  if(l.cursor>=deck(chosen,l.group).length){
   l.group++;l.studied=0;l.cursor=0;
@@ -305,6 +333,13 @@ function finish(){
 }
 app.addEventListener("click",e=>{
  const target=e.target.closest("button");if(!target)return;
+ if(target.dataset.act==="review-start"){startReview();return}
+ if(review){
+  if(target.dataset.act==="home"){viewHome();return}
+  if(target.dataset.act==="review-show"){const x=review.q[review.n];review.errors++;message="Ответ: "+levels[x.i].terms[x.j][0]+". Слово вернётся на повторение.";renderReview();return}
+  if(target.dataset.act==="review-check"){const x=review.q[review.n],answer=levels[x.i].terms[x.j][0];if(norm(document.getElementById("review-input")?.value)===norm(answer))advanceReview(true);else{review.errors++;message="Пока неверно. Попробуй ещё раз или открой ответ.";renderReview()}return}
+  if(target.hasAttribute("data-review-choice")){if(target.dataset.reviewChoice==="yes")advanceReview(true);else{review.errors++;message="Пока неверно. Попробуй другой вариант.";renderReview()}return}
+ }
  if(target.hasAttribute("data-buy")){
   const item=SHOP.find(x=>x[0]===target.dataset.buy);if(!item)return;
   if(!state.purchases.includes(item[0])){if(!spend(item[3])){viewHome();return}state.purchases.push(item[0]);}
