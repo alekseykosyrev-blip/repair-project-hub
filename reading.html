@@ -160,9 +160,9 @@ function assess(){
  const matchData=compare(r[2],transcript,v.durationMs||0);
  result={transcript,matchData};
  clipId=v.clipId||clipId;
- const payload={id:"Чтение: "+r[0],type:"read",ok:true,day:moscowDay(),time:new Date().toISOString(),clipId:clipId,
+ const payload={id:"Чтение: "+r[0],type:"read",readingStandalone:true,ok:true,day:moscowDay(),time:new Date().toISOString(),clipId:clipId,
  input:transcript.slice(0,500),prompt:r[2],example:r[0],hintLevel:0,usedSpeech:!!transcript,
- readingMatch:matchData?matchData.match:null,readingPace:matchData?matchData.pace:null,
+ readingMatch:matchData?matchData.match:null,readingScore:matchData?matchData.match:null,readingPace:matchData?matchData.pace:null,
  readingMissed:matchData?matchData.missed:[],readingExtra:matchData?matchData.extra:[],
  readingDurationMs:v.durationMs||null,readingSelf:null,readingVersion:2};
  saved=saveAttempt(payload);
