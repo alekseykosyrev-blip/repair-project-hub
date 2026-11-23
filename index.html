@@ -242,7 +242,7 @@ function analysis(){
  }).filter(x=>x.bad>0&&(x.lastWrong||x.bad>=x.good))
  .sort((a,b)=>(b.lastWrong?1:0)-(a.lastWrong?1:0)||(b.bad-b.good)-(a.bad-a.good)||b.bad-a.bad);
  const mistakes=TERMS.map(t=>{const x=historyOf(t[0]).filter(isGraded).filter(h=>!isIncomplete(h));return {term:t[0],bad:x.filter(h=>!reviewedOk(h)).length,good:x.filter(reviewedOk).length}}).filter(x=>x.bad>0).sort((a,b)=>b.bad-a.bad||a.term.localeCompare(b.term,"ru"));
- const count=data.history.filter(a=>a.day===today()).length;
+ const count=data.history.filter(a=>a.day===today()&&a.type!=="read").length;
  let streak=0;const dates=new Set(data.history.map(a=>a.day));const d=new Date();
  const utc3Date=new Date(d.getTime()+3*3600000);
  function dkey(z){return z.toISOString().slice(0,10)}
@@ -262,6 +262,7 @@ function reportText(){
  "Всего ответов: "+a.total+"; за сегодня: "+a.count,
  "Автоматически проверенных тестов: "+a.graded+", верно: "+a.gradedCorrect+", ошибочно: "+a.gradedWrong+", точность: "+(a.accuracy===null?"нет данных":a.accuracy+"%"),
  "Карточки, свободные формулировки и чтение вслух: "+a.self+". Это самооценка или выполнение упражнения, не автоматическая оценка речи.",
+ "Чтение: записано "+data.history.filter(h=>h.type==="read").length+" упражнений; сопоставление слов выполнено в "+data.history.filter(h=>h.type==="read"&&Number.isFinite(h.readingScore)).length+". Балл — совпадение расшифровки, не качество произношения.",
  "Перепроверено и зачтено: "+a.rechecked+"; незавершённые односимвольные тестовые ответы: "+a.incomplete+"; исключено старых организационных заданий: "+a.excluded+". Исходная история сохранена.",
  "Режимы: "+a.byType.map(x=>labelMode[x.type]+": "+x.n+" (успешно/самооценка "+x.ok+")").join("; "),
  "На повторение: "+(a.weak.length?a.weak.slice(0,12).map(x=>x.term+" (ошибок "+x.bad+", успешных "+x.good+")").join("; "):"нет текущих слабых терминов"),
@@ -270,7 +271,7 @@ function reportText(){
  ];
  const recent=data.history.slice(-200);
  out.push("ПОСЛЕДНИЕ ОТВЕТЫ (до 200 записей):");
- for(const h of recent)out.push(h.time+" | "+h.type+" | "+h.id+" | "+(legacyExcluded(h)?"исключено из оценки":isIncomplete(h)?"незавершённый ответ":reviewedOk(h)?"верно/знаю":"ошибка/повторить")+" | ответ: "+(h.input||"(не указан)")+(h.prompt?" | задание: "+h.prompt:"")+(h.example?" | ориентир: "+h.example:"")+(h.clipId?" | аудиозапись: только в этом браузере":"")+(h.usedSpeech?" | надиктован":""));
+ for(const h of recent)out.push(h.time+" | "+h.type+" | "+h.id+" | "+(legacyExcluded(h)?"исключено из оценки":isIncomplete(h)?"незавершённый ответ":reviewedOk(h)?"верно/знаю":"ошибка/повторить")+" | ответ: "+(h.input||"(не указан)")+(h.prompt?" | задание: "+h.prompt:"")+(h.example?" | ориентир: "+h.example:"")+(h.clipId?" | аудиозапись: только в этом браузере":"")+(h.usedSpeech?" | надиктован":"")+(Number.isFinite(h.readingScore)?" | совпадение: "+h.readingScore+"%; распознанных слов/мин: "+(h.readingPace??"—"):""));
  return out.join("\n");
 }
 function saveReport(){
@@ -294,7 +295,7 @@ function renderReport(){
  const rows=a.byType.map(t=>'<div class="stat"><div class="val">'+t.n+'</div><div class="label">'+safe(labelMode[t.type])+'</div></div>').join("");
  const issues=a.weak.slice(0,20).map((x,i)=>'<div class="journal-row"><span>'+safe(x.term)+'</span><small>'+x.bad+' ошибок · '+x.good+' успешных</small></div>').join("");
  const allMistakes=a.mistakes.slice(0,20).map(x=>'<div class="journal-row"><span>'+safe(x.term)+'</span><small>'+x.bad+' ошибок</small></div>').join("");
- const logs=data.history.slice(-100).reverse().map(h=>'<div class="journal-row"><span>'+safe(h.id)+'<small style="display:block;color:#829087;margin-top:4px">'+safe(h.time.slice(0,16).replace("T"," "))+' · '+safe(h.type)+'</small></span><small>'+(h.type==="read"?"Запись сделана":!h.ok?"Повторить":"Верно / знаю")+'<span style="display:block;max-width:260px;word-wrap:break-word">'+safe(h.input||"")+'</span>'+(h.clipId?'<button class="secondary" style="margin-top:8px" data-playclip="'+safe(h.clipId)+'">Прослушать запись</button>':'')+'</small></div>').join("");
+ const logs=data.history.slice(-100).reverse().map(h=>'<div class="journal-row"><span>'+safe(h.id)+'<small style="display:block;color:#829087;margin-top:4px">'+safe(h.time.slice(0,16).replace("T"," "))+' · '+safe(h.type)+'</small></span><small>'+(h.type==="read"?"Чтение записано"+(Number.isFinite(h.readingScore)?" · совпадение "+h.readingScore+"%":""):!h.ok?"Повторить":"Верно / знаю")+'<span style="display:block;max-width:260px;word-wrap:break-word">'+safe(h.input||"")+'</span>'+(h.clipId?'<button class="secondary" style="margin-top:8px" data-playclip="'+safe(h.clipId)+'">Прослушать запись</button>':'')+'</small></div>').join("");
  app.innerHTML='<div class="eyebrow">Анализ ответов · время Москвы</div><h1>Журнал обучения</h1><p class="lead">История всех ответов сохраняется в этом браузере. Автоматически проверяются выбор термина, вставка слова, различие понятий и порядок фраз. Карточки и свободный текст оцениваются тобой.</p>'+
  '<div class="grid-stats"><div class="stat"><div class="val">'+a.total+'</div><div class="label">Всего ответов</div></div><div class="stat"><div class="val">'+a.gradedWrong+'</div><div class="label">Ошибки в тестах</div></div><div class="stat"><div class="val">'+(a.accuracy===null?"—":a.accuracy+"%")+'</div><div class="label">Точность тестов</div></div><div class="stat"><div class="val">'+a.count+'</div><div class="label">Сегодня</div></div></div>'+
  '<div class="section-title">Ответы по типам</div><div class="grid-stats">'+rows+'</div>'+
@@ -552,8 +553,33 @@ function renderEnd(){
  '<button class="primary big" data-action="extra">Ещё 20 заданий</button><div class="actions" style="justify-content:center"><button class="link" data-action="home">На главную</button></div></section>';
 }
 app.addEventListener("click",e=>{
+ const readingChoice=e.target.closest("[data-reading]");if(readingChoice){openReading(readingChoice.dataset.reading);return}
  const m=e.target.closest("[data-mode]");if(m){selectedMode=m.dataset.mode;renderHome();return}
  const a=e.target.closest("[data-action]");if(a){
+ if(a.dataset.action==="reading-home"){renderReadingLibrary();return}
+ if(a.dataset.action==="reading-record"&&readingSession){
+  const ref=readingSession;
+  readingSession.evaluated=false;readingSession.result=null;readingSession.clipId=null;
+  window.TrainerVoice.record(()=>{if(readingSession===ref&&page==="reading-task")renderReadingTask()},id=>{if(readingSession===ref)readingSession.clipId=id},
+   transcript=>{if(readingSession===ref)readingSession.transcript=transcript});
+  return;
+ }
+ if(a.dataset.action==="reading-evaluate"){finishReading();return}
+ if(a.dataset.action==="reading-next"&&readingSession){
+  const next=(readingSession.index+1)%READINGS.length;
+  if(!readingSession.evaluated&&window.TrainerVoice.state().blob&&!window.TrainerVoice.state().saving&&!window.TrainerVoice.state().listening)finishReading();
+  openReading(next);return;
+ }
+ if(a.dataset.action==="voice-record"&&page==="reading-task"&&readingSession){
+  const ref=readingSession;
+  readingSession.evaluated=false;readingSession.result=null;readingSession.clipId=null;
+  window.TrainerVoice.record(()=>{if(readingSession===ref&&page==="reading-task")renderReadingTask()},id=>{if(readingSession===ref)readingSession.clipId=id},
+   transcript=>{if(readingSession===ref)readingSession.transcript=transcript});
+  return;
+ }
+ if(a.dataset.action==="voice-stop"&&page==="reading-task"&&readingSession){
+  const ref=readingSession;window.TrainerVoice.stop(()=>{if(readingSession===ref&&page==="reading-task")renderReadingTask()});return;
+ }
  if(a.dataset.action==="voice-record"&&current&&!current.done){const task=current;window.TrainerVoice.record(()=>{if(current===task)renderTask()},id=>{if(current===task)task.clipId=id});return}
  if(a.dataset.action==="voice-stop"){const task=current;window.TrainerVoice.stop(()=>{if(current===task)renderTask()});return}
  if(a.dataset.action==="voice-download"){window.TrainerVoice.download();return}
