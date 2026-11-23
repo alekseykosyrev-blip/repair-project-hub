@@ -212,6 +212,15 @@ const safe=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"
 let data={version:1,history:[],sequence:0};
 try{const d=JSON.parse(localStorage.getItem(KEY)||"null");if(d&&Array.isArray(d.history)){data=d;data.sequence=Number(data.sequence)||0;}}catch(e){}
 const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}};
+const ADDITIONAL_READINGS=[
+["Доклад о рисках на совещании","На текущий момент по объекту выявлены три обстоятельства, способные повлиять на сроки завершения отделочных работ. Первое — задержка согласования технического решения по нескольким помещениям. Второе — необходимость дополнительной проверки основания перед нанесением финишного покрытия. Третье — неполная готовность смежных инженерных систем. Предлагаю разделить вопросы по уровню ответственности, определить сроки принятия решений и внести согласованные корректировки в график. По каждому риску назначим ответственного и контрольную дату. Такой подход позволит своевременно выявлять отклонения, минимизировать простой и предоставлять руководству достоверную картину исполнения проекта."],
+["Аргументированное возражение руководителю","Я понимаю необходимость сократить сроки выполнения работ. Вместе с тем предлагаемое изменение последовательности операций требует дополнительной технической проверки. Если исключить обязательные этапы подготовки основания, существует риск появления дефектов после сдачи объекта. В этом случае экономия времени на текущем этапе может привести к дополнительным расходам и повторному выполнению работ. Предлагаю рассмотреть альтернативный вариант: перераспределить ресурсы на подготовительных участках и параллельно организовать приёмку уже завершённых помещений. Это позволит ускорить общий график без изменения согласованных требований к качеству. При необходимости подготовлю сравнительный расчёт двух решений."],
+["Выступление перед заказчиком","Добрый день. Представлю краткий отчёт о ходе отделочных работ. На сегодняшний день основные этапы подготовки поверхностей выполнены в соответствии с согласованной технологией. По отдельным помещениям остаются замечания, которые мы зафиксировали и включили в план корректирующих мероприятий. Приоритетом на ближайшую неделю является завершение подготовки к финишной окраске и промежуточная приёмка выполненных работ. Для соблюдения графика потребуется своевременное подтверждение готовности инженерных систем и согласование двух технических вопросов. После получения решений мы актуализируем календарный план и направим сводный статус всем заинтересованным участникам. Наша задача — обеспечить прогнозируемый результат по качеству, срокам и стоимости."],
+["Защита стоимости дополнительных работ","При контрольном обмере выявлено увеличение фактического объёма по сравнению с исходной ведомостью. Дополнительный объём не относится к ранее согласованным позициям и требует отдельного подтверждения. Предлагаем зафиксировать результаты обмера актом, уточнить состав необходимых операций и подготовить расчёт стоимости на основании утверждённых расценок. После согласования сметы возможно определить сроки выполнения и влияние дополнительных работ на общий график. Мы не предлагаем менять стоимость уже принятых обязательств без основания. Речь идёт о корректном оформлении нового объёма, который не был предусмотрен исходными данными. Такой порядок позволит исключить разночтения при последующей приёмке и оплате."],
+["Публичное выступление об управлении качеством","Качество строительных и отделочных работ формируется не только на финишном этапе. Оно зависит от последовательного соблюдения технологии, своевременного контроля и чётко распределённой ответственности. Если дефект выявлен уже после завершения отделки, затраты на его устранение могут значительно превысить стоимость профилактической проверки. Поэтому наша система управления качеством должна включать входной контроль материалов, операционную проверку ключевых этапов и документальное подтверждение результата. При возникновении повторяющихся замечаний важно не ограничиваться исправлением поверхности. Необходимо установить первопричину и принять корректирующие действия. Главная цель такого подхода — не увеличение количества проверок, а снижение числа переделок, соблюдение договорных обязательств и устойчивое доверие заказчика."],
+["Итоговое слово на планёрке","Подведу итоги сегодняшнего совещания. Мы уточнили фактическое состояние работ, зафиксировали основные ограничения и согласовали перечень дальнейших действий. В первую очередь необходимо закрыть замечания, которые препятствуют передаче фронта следующим подрядчикам. Параллельно требуется подтвердить сроки поставки материалов и завершить согласование технических решений. Ответственных и контрольные даты предлагаю внести в единый протокол. По вопросам, которые нельзя решить на уровне участка, подготовим материалы для руководителя проекта. Следующую проверку проведём по факту исполнения согласованных пунктов. Наша задача на ближайший период — сократить неопределённость, обеспечить прозрачный контроль и не допустить накопления отставаний по графику."]
+];
+READINGS.push(...ADDITIONAL_READINGS);
 let selectedMode="mix",session=null,current=null,lastKeys=[],page="home",readingSession=null;
 const labelMode={mix:"Смешанная тренировка",quiz:"Выбери термин",fill:"Вставь слово",card:"Карточка",phrase:"Точная формулировка",logic:"Структура доклада",contrast:"Различай понятия",read:"Чтение вслух",dictate:"Голосовые ответы"};
 const dayNumber=day=>Math.floor(Date.parse(day+"T00:00:00Z")/86400000);
@@ -327,6 +336,82 @@ function renderHome(){
  '<p class="mini">На повторение сегодня: '+due+' терминов · закреплено в разные дни: '+mastered+'.</p>'+
  '<p class="bottomline">Результаты сохраняются в этом браузере, а план адаптируется после каждого ответа. Для анализа в ChatGPT открой журнал и скопируй отчёт.</p>';
 }
+
+function renderReadingLibrary(){
+ window.TrainerVoice.reset();current=null;session=null;readingSession=null;page="reading-library";
+ const history=data.history.filter(h=>h.type==="read"&&h.readingStandalone),withScore=history.filter(h=>Number.isFinite(h.readingScore));
+ const last=withScore.length?withScore[withScore.length-1]:null;
+ const choices=READINGS.map((r,i)=>{
+  const total=window.TrainerReading.words(r[1]).length,level=total<55?"Короткий текст":total<85?"Рабочий доклад":"Развёрнутое выступление";
+  const attempts=history.filter(h=>h.id==="Чтение: "+r[0]).length;
+  return '<button class="mode reading-choice" data-reading="'+i+'"><b>'+safe(r[0])+'</b>'+
+   '<small>'+level+' · '+total+' слов'+(attempts?' · попыток: '+attempts:'')+'</small>'+
+   '<span class="reading-preview">'+safe(r[1].slice(0,105))+'…</span></button>';
+ }).join("");
+ app.innerHTML='<div class="eyebrow">Самостоятельная тренировка · чтение</div><h1>Читай вслух.<br>Говори увереннее.</h1>'+
+ '<p class="lead">Выбери текст, прочитай его вслух, запиши голос и прослушай результат. Система сравнит распознанные слова с образцом и оценит примерный темп. Упражнение не входит в обычные 20 вопросов.</p>'+
+ '<div class="grid-stats"><div class="stat"><div class="val">'+history.length+'</div><div class="label">Записей чтения</div></div>'+
+ '<div class="stat"><div class="val">'+(last?.readingScore!=null?last.readingScore+'%':'—')+'</div><div class="label">Последнее совпадение</div></div>'+
+ '<div class="stat"><div class="val">'+(last?.readingPace||'—')+'</div><div class="label">Слов в минуту</div></div>'+
+ '<div class="stat"><div class="val">'+READINGS.length+'</div><div class="label">Текстов в сборнике</div></div></div>'+
+ '<div class="section-title">Выбери текст для чтения</div><div class="reading-choices">'+choices+'</div>'+
+ '<p class="bottomline">Оценка совпадения показывает только качество распознавания слов, а не произношение или уверенность. При распознавании сервис браузера может обрабатывать аудио. Записи остаются на твоём устройстве.</p>'+
+ '<div class="actions"><button class="secondary" data-action="report">Открыть историю и записи</button><button class="link" data-action="home">← Все тренировки</button></div>';
+}
+function openReading(index){
+ const n=Number(index);if(!Number.isInteger(n)||n<0||n>=READINGS.length)return;
+ window.TrainerVoice.reset();current=null;session=null;
+ readingSession={index:n,evaluated:false,logged:false,result:null,clipId:null};renderReadingTask();
+}
+function renderReadingTask(){
+ if(!readingSession){renderReadingLibrary();return}
+ page="reading-task";
+ const r=READINGS[readingSession.index],v=window.TrainerVoice.state();
+ const wordCount=window.TrainerReading.words(r[1]).length;
+ const result=readingSession.result;
+ const stats=result?.available?'<div class="reading-metrics">'+
+  '<div><b>'+result.coverage+'%</b><span>Слова, совпавшие с образцом</span></div>'+
+  '<div><b>'+(result.rate===null?'—':result.rate)+'</b><span>Распознанных слов в минуту</span></div>'+
+  '<div><b>'+result.expectedCount+'</b><span>Слов в исходном тексте</span></div></div>':'';
+ const review=result?'<div class="reading-result"><h3>Разбор чтения</h3>'+
+  (result.available?stats+
+   (result.omissions.length?'<p class="mini"><b>Слова, не найденные в расшифровке:</b> '+safe(result.omissions.join(', '))+'</p>':'<p class="mini">По текстовой расшифровке пропусков не найдено.</p>')+
+   (result.extra.length?'<p class="mini"><b>Дополнительные слова в расшифровке:</b> '+safe(result.extra.join(', '))+'</p>':'')+
+   '<p class="mini"><b>Распознанный текст:</b></p><div class="draft">'+safe(v.transcript||'')+'</div>':
+   '<p class="mini">'+safe(result.reason)+'</p>')+
+  (result.notes?'<ul>'+result.notes.map(x=>'<li>'+safe(x)+'</li>').join('')+'</ul>':'')+
+  '<div class="actions"><button class="primary" data-action="reading-next">Следующий текст</button><button class="secondary" data-action="reading-home">Выбрать другой</button></div></div>':'';
+ const recordingReady=v.blob&&!v.recording&&!v.saving&&!v.listening;
+ const buttons=recordingReady&&!readingSession.evaluated?'<div class="actions"><button class="primary" data-action="reading-evaluate">Разобрать моё чтение</button><button class="secondary" data-action="reading-next">Следующий текст без разбора</button></div>':'';
+ app.innerHTML='<div class="eyebrow">Отдельная практика · текст '+(readingSession.index+1)+' из '+READINGS.length+'</div>'+
+ '<div class="actions" style="margin:12px 0 24px"><button class="link" data-action="reading-home">← Все тексты</button></div>'+
+ '<section class="panel"><div class="topic">Профессиональная речь · '+wordCount+' слов</div>'+
+ '<div class="qtitle">'+safe(r[0])+'</div>'+
+ '<p class="context">Прочитай текст глазами. Затем нажми «Записать голос», прочитай его спокойно, делая паузы между мыслями, и останови запись. После прослушивания запусти разбор.</p>'+
+ '<div class="reading-text">'+safe(r[1])+'</div>'+
+ window.TrainerVoice.box({record:!readingSession.evaluated})+
+ (v.recording?'<p class="mini recording-indicator">Не спеши: выделяй главное и завершай каждую мысль.</p>':'')+
+ (v.saving||v.listening&&!v.recording?'<p class="mini">Завершаем запись и распознавание…</p>':'')+
+ buttons+review+'</section>'+
+ '<p class="bottomline">Разбор выполняется по тексту, который распознал браузер. При сильном шуме или плохом распознавании вывод может быть неточным. Дикция, интонация и эмоциональная выразительность оцениваются при прослушивании самостоятельно.</p>';
+}
+function finishReading(){
+ if(!readingSession||readingSession.evaluated)return;
+ const v=window.TrainerVoice.state();
+ if(!v.blob||v.recording||v.saving||v.listening)return;
+ const r=READINGS[readingSession.index];
+ const outcome=window.TrainerReading.analyze(r[1],v.transcript,v.durationMs);
+ readingSession.result=outcome;readingSession.evaluated=true;
+ data.sequence++;
+ data.history.push({id:"Чтение: "+r[0],type:"read",readingStandalone:true,
+  ok:true,day:today(),time:new Date().toISOString(),clipId:readingSession.clipId||v.clipId||null,
+  usedSpeech:!!v.transcript,input:String(v.transcript||"").slice(0,1800),
+  prompt:r[1],example:r[0],hintLevel:0,readingScore:outcome.available?outcome.coverage:null,
+  readingPace:outcome.available?outcome.rate:null,readingDurationMs:v.durationMs||0});
+ if(data.history.length>5000)data.history=data.history.slice(-3500);
+ persist();readingSession.logged=true;renderReadingTask();
+}
+
 function modeButton(id,title,detail){
  return '<button class="mode '+(selectedMode===id?"active":"")+'" data-mode="'+id+'"><b>'+title+'</b><small>'+detail+'</small></button>';
 }
