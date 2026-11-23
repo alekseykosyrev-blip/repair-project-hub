@@ -223,12 +223,12 @@ function analysis(){
  function dkey(z){return z.toISOString().slice(0,10)}
  if(!dates.has(dkey(utc3Date)))utc3Date.setUTCDate(utc3Date.getUTCDate()-1);
  while(dates.has(dkey(utc3Date))){streak++;utc3Date.setUTCDate(utc3Date.getUTCDate()-1)}
- const byType=["fill","quiz","contrast","logic","card","phrase"].map(type=>{
+ const byType=["fill","quiz","contrast","logic","card","phrase","read"].map(type=>{
   const items=data.history.filter(a=>a.type===type);
   return {type,n:items.length,ok:items.filter(reviewedOk).length};
  });
  const todayAnswers=data.history.filter(a=>a.day===today());
- return{count,total:data.history.length,accuracy:graded.length?Math.round(correct/graded.length*100):null,graded:graded.length,gradedCorrect:correct,gradedWrong:graded.length-correct,self:data.history.filter(h=>h.type==="card"||h.type==="phrase").length,excluded:data.history.filter(legacyExcluded).length,incomplete:data.history.filter(h=>isGraded(h)&&isIncomplete(h)).length,rechecked:data.history.filter(h=>isGraded(h)&&!h.ok&&reviewedOk(h)).length,todayAnswers,weak,mistakes,streak,byType};
+ return{count,total:data.history.length,accuracy:graded.length?Math.round(correct/graded.length*100):null,graded:graded.length,gradedCorrect:correct,gradedWrong:graded.length-correct,self:data.history.filter(h=>h.type==="card"||h.type==="phrase"||h.type==="read").length,excluded:data.history.filter(legacyExcluded).length,incomplete:data.history.filter(h=>isGraded(h)&&isIncomplete(h)).length,rechecked:data.history.filter(h=>isGraded(h)&&!h.ok&&reviewedOk(h)).length,todayAnswers,weak,mistakes,streak,byType};
 }
 function reportText(){
  const a=analysis();const out=[
@@ -236,7 +236,7 @@ function reportText(){
  "Дата (Москва): "+today(),
  "Всего ответов: "+a.total+"; за сегодня: "+a.count,
  "Автоматически проверенных тестов: "+a.graded+", верно: "+a.gradedCorrect+", ошибочно: "+a.gradedWrong+", точность: "+(a.accuracy===null?"нет данных":a.accuracy+"%"),
- "Карточки и свободные формулировки оценены самостоятельно: "+a.self+". Эти отметки не являются независимой проверкой.",
+ "Карточки, свободные формулировки и чтение вслух: "+a.self+". Это самооценка или выполнение упражнения, не автоматическая оценка речи.",
  "Перепроверено и зачтено: "+a.rechecked+"; незавершённые односимвольные тестовые ответы: "+a.incomplete+"; исключено старых организационных заданий: "+a.excluded+". Исходная история сохранена.",
  "Режимы: "+a.byType.map(x=>labelMode[x.type]+": "+x.n+" (успешно/самооценка "+x.ok+")").join("; "),
  "На повторение: "+(a.weak.length?a.weak.slice(0,12).map(x=>x.term+" (ошибок "+x.bad+", успешных "+x.good+")").join("; "):"нет текущих слабых терминов"),
@@ -277,13 +277,13 @@ function renderReport(){
  '<p style="margin:0;color:#506358;line-height:1.7">'+(a.graded===0?"Начни с тестов, чтобы получить объективный результат.":"На следующем занятии — прежде всего активное вспоминание и закрепление сложных терминов. Проверено автоматически: "+a.graded+"; ошибки: "+a.gradedWrong+".")+'</p>'+
  (a.weak.length?'<div class="section-title">На повторение</div><div>'+issues+'</div>':'<p class="mini">По текущим данным трудных терминов не выделено.</p>')+
  '<div class="section-title">История ошибок</div>'+(a.mistakes.length?allMistakes:'<p class="mini">Ошибок пока нет.</p>')+
- '<p class="bottomline">План пересчитывается после каждого ответа и при следующем посещении. Статистика видна в любое время. Сайт пока не передаёт ответы автоматически в ChatGPT.</p></section>'+
+ '<p class="bottomline">План пересчитывается после каждого ответа и при следующем посещении. Статистика видна в любое время. Сайт пока не передаёт ответы и аудио автоматически в ChatGPT. Аудиозаписи остаются в браузере, экспорт JSON содержит только сведения о них.</p></section>'+
  '<div class="section-title">Архив · последние 100 ответов</div><section class="panel">'+(logs||'<p class="mini">Пока нет ответов.</p>')+'</section>'+
  '<div class="actions"><button class="primary" data-action="copy-report">Скопировать отчёт для ChatGPT</button><button class="secondary" data-action="export">Скачать весь архив JSON</button></div>'+
  '<div class="actions"><button class="link" data-action="home">← К тренировке</button></div>';
 }
 function renderHome(){
- session=null;current=null;
+ window.TrainerVoice.reset();session=null;current=null;
  const s=analysis();const done=Math.min(100,Math.round(s.count/20*100));
  const due=TERMS.filter(t=>{const z=learningState(t[0]);return z.due&&z.seen}).length;
  const mastered=TERMS.filter(t=>new Set(historyOf(t[0]).filter(x=>x.type==="fill"&&x.ok).map(x=>x.day)).size>=2).length;
@@ -303,6 +303,8 @@ function renderHome(){
  modeButton("quiz","Выбрать термин","Четыре близких варианта")+
  modeButton("phrase","Сказать профессионально","Коротко сформулировать мысль")+
  modeButton("card","Карточки","Вспомнить определение")+
+ modeButton("read","Чтение вслух","Прочитай, запиши и послушай")+
+ modeButton("dictate","Голосовой ответ","Надиктуй термин или формулировку")+
  '</div>'+
  (s.weak.length?'<div class="section-title">Стоит повторить</div><div class="weak">'+s.weak.slice(0,5).map(x=>'<span class="pill">'+safe(x.term)+'</span>').join("")+'</div>':"")+
  '<div class="actions">'+(s.weak.length?'<button class="secondary" data-action="review">Повторить сложное · 20 заданий</button>':'')+'<button class="secondary" data-action="report">Журнал и анализ ответов</button></div>'+
@@ -314,8 +316,9 @@ function modeButton(id,title,detail){
 }
 function modeOfNext(){
  if(session?.reviewOnly)return ["fill","contrast","fill","card","fill","quiz","phrase","fill","contrast","fill"][session.n%10];
+ if(selectedMode==="dictate")return session.n%2===0?"phrase":"fill";
  if(selectedMode!=="mix")return selectedMode;
- return ["fill","contrast","phrase","fill","quiz","phrase","fill","phrase","contrast","fill","phrase","card","fill","phrase","logic","fill","phrase","quiz","fill","phrase"][session.n%20];
+ return ["fill","contrast","phrase","fill","quiz","phrase","fill","phrase","contrast","fill","phrase","read","fill","phrase","logic","fill","phrase","read","fill","phrase"][session.n%20];
 }
 function scoreFor(id,type){
  const h=historyOf(id).filter(x=>!legacyExcluded(x)&&!isIncomplete(x)),objective=h.filter(isGraded),bad=objective.filter(x=>!reviewedOk(x)).length,good=objective.filter(reviewedOk).length,last=objective.length?objective[objective.length-1]:null;
@@ -336,6 +339,9 @@ function pickNext(){
  }else if(type==="logic"){
  const candidates=CHAINS.map((c,i)=>({type,id:"Логика: "+c[0],key:"l"+i,chain:c,score:scoreFor("Логика: "+c[0],type)+(session?.seenKeys?.includes("l"+i)?-180:0)}));
  candidates.sort((a,b)=>b.score-a.score);item=candidates[0];
+ }else if(type==="read"){
+ const candidates=READINGS.map((r,i)=>({type,id:"Чтение: "+r[0],key:"r"+i,reading:r,score:scoreFor("Чтение: "+r[0],type)+(session?.seenKeys?.includes("r"+i)?-180:0)}));
+ candidates.sort((a,b)=>b.score-a.score);item=candidates[0];
  }else if(type==="phrase"){
  const candidates=PHRASES.map((p,i)=>({type,id:p[2],key:"p"+i,phrase:p,score:scoreFor(p[2],type)+(session?.seenKeys?.includes("p"+i)?-135:0)+Math.random()*4}));
  candidates.sort((a,b)=>b.score-a.score);item=candidates.find(x=>!lastKeys.includes(x.key))||candidates[0];
@@ -343,7 +349,8 @@ function pickNext(){
  const candidates=TERMS.map((t,i)=>({type,id:t[0],key:t[0],term:t,score:scoreFor(t[0],type)+(i%4)*.1}));
  candidates.sort((a,b)=>b.score-a.score);item=candidates[0];
  }
- current={...item,done:false,revealed:false,input:"",ok:false,choice:null,hintLevel:0,draft:"",order:[]};
+ window.TrainerVoice.reset();
+ current={...item,done:false,revealed:false,input:"",ok:false,choice:null,hintLevel:0,draft:"",order:[],clipId:null,usedSpeech:false};
  session.seenIds??=[];session.seenIds.push(item.id);
  session.seenKeys??=[];session.seenKeys.push(item.key);
  lastKeys=[...lastKeys,item.key].slice(-4);
