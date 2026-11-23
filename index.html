@@ -332,7 +332,8 @@ function renderHome(){
  modeButton("card","Карточки","Вспомнить определение")+
  modeButton("dictate","Голосовой ответ","Надиктуй термин или формулировку")+
  '</div>'+
- '<section class="reading-entry"><div class="eyebrow">Отдельная тренировка</div><h2>Чтение вслух и разбор речи</h2><p>Прочитай профессиональный доклад, запиши голос и прослушай себя. При поддержке браузера сравним распознанные слова с текстом и определим приблизительный темп чтения.</p><a class="reading-main-link" href="./reading.html">Перейти к тренировке чтения</a></section>'+
+ '<section class="reading-entry" style="background:linear-gradient(120deg,#e3f5e1,#edf2ff);border-color:#cfe5d0"><div class="eyebrow">Новое · 5 уровней</div><h2>От первого слова до уверенной речи</h2><p>Сначала изучаем значение слова, затем вспоминаем без подсказки, составляем предложение и читаем вслух. Сложность растёт постепенно. Старые упражнения и журнал сохраняются.</p><a class="reading-main-link" href="./course.html">Начать обучение с первого уровня</a></section>'+
+  '<section class="reading-entry"><div class="eyebrow">Отдельная тренировка</div><h2>Чтение вслух и разбор речи</h2><p>Прочитай профессиональный доклад, запиши голос и прослушай себя. При поддержке браузера сравним распознанные слова с текстом и определим приблизительный темп чтения.</p><a class="reading-main-link" href="./reading.html">Перейти к тренировке чтения</a></section>'+
  (s.weak.length?'<div class="section-title">Стоит повторить</div><div class="weak">'+s.weak.slice(0,5).map(x=>'<span class="pill">'+safe(x.term)+'</span>').join("")+'</div>':"")+
  '<div class="actions">'+(s.weak.length?'<button class="secondary" data-action="review">Повторить сложное · 20 заданий</button>':'')+'<button class="secondary" data-action="report">Журнал и анализ ответов</button></div>'+
  '<p class="mini">На повторение сегодня: '+due+' терминов · закреплено в разные дни: '+mastered+'.</p>'+
