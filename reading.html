@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f5f1">
+<meta name="description" content="Тренировка чтения вслух: профессиональные тексты, запись и разбор речи.">
+<title>Тренировка чтения — Речь руководителя</title>
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<style>
+:root{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#1b2526;background:#f6f5f1;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0;min-height:100vh}button,input{font:inherit}button{cursor:pointer}button:disabled{cursor:default;opacity:.55}
+.shell{width:min(850px,calc(100% - 36px));margin:auto;padding:28px 0 75px}
+.top{display:flex;align-items:center;gap:11px;margin-bottom:50px}.logo{display:grid;place-items:center;width:38px;height:38px;background:#213f3a;border-radius:12px;color:#fff;font-size:16px;font-weight:750}.topname{font-size:15px;font-weight:750;letter-spacing:-.03em}.subname{font-size:12px;color:#747b79;margin-top:2px}
+h1{font-size:clamp(32px,6vw,48px);line-height:1.1;letter-spacing:-.05em;margin:12px 0 15px}h2{font-size:22px;letter-spacing:-.03em;margin:10px 0}
+.eyebrow{font-size:11px;font-weight:760;color:#648077;text-transform:uppercase;letter-spacing:.14em}.lead{font-size:16px;color:#66716d;line-height:1.65;max-width:670px;margin:0 0 25px}
+.panel{background:#fff;border:1px solid #e6e9e2;border-radius:20px;padding:clamp(18px,4vw,34px);box-shadow:0 14px 40px rgba(50,65,50,.035)}
+.primary{background:#24493f;border:1px solid #24493f;color:#fff;border-radius:12px;font-weight:720;padding:14px 19px;min-height:49px}.primary:not(:disabled):hover{background:#17392e}
+.secondary{background:#fff;border:1px solid #dfe5dc;border-radius:12px;color:#25352f;font-weight:650;padding:12px 16px;min-height:45px}.link{border:0;background:none;color:#536b5b;font-weight:680;padding:10px 0}.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0}
+button:focus-visible,input:focus-visible{outline:3px solid #abc8bd;outline-offset:3px}.big{width:100%}
+.catalog{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:17px}.passage{background:#fff;border:1px solid #e3e9e1;border-radius:16px;min-height:114px;padding:19px;text-align:left;transition:border-color .15s}.passage:hover{border-color:#8aa997;background:#f9fcf8}.passage b{font-size:16px;display:block;line-height:1.4}.passage small{font-size:12px;display:block;color:#75837a;margin-top:10px}.section-title{font-size:16px;font-weight:750;margin:31px 0 13px}.muted,.mini{font-size:13px;line-height:1.6;color:#697870}
+.reading-text{font-size:clamp(19px,3.5vw,24px);line-height:1.85;color:#20352b;white-space:pre-line;padding:15px 0 7px;letter-spacing:.005em}
+.reading-text::selection{background:#d3e6d5}.tip{border-left:3px solid #739887;padding:12px 16px;background:#f4f8f3;border-radius:0 10px 10px 0;font-size:14px;line-height:1.6;color:#3e594b;margin:14px 0}
+.voice-box{border:1px solid #dce6dd;background:#f7faf6;border-radius:14px;padding:16px;margin:20px 0 7px}
+.voice-heading{font-size:13px;font-weight:760;color:#315a46;margin-bottom:9px}.voice-controls{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.voice-controls .secondary{padding:10px 13px;min-height:44px}.voice-box audio{width:100%;margin:10px 0 4px}.voice-box .mini{margin:7px 0}.recording-indicator{color:#a53c30;font-weight:750}
+.results{border:1px solid #dbe8de;background:#f9fbf9;border-radius:16px;padding:20px;margin:24px 0}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:17px 0}.metric{background:#fff;border:1px solid #e1e8e0;border-radius:12px;padding:15px 13px}.metric b{display:block;font-size:25px;letter-spacing:-.04em;color:#24493f}.metric span{font-size:12px;color:#64786b;display:block;margin-top:5px}
+.differences{display:grid;grid-template-columns:1fr 1fr;gap:13px}.diff{border:1px solid #e1e8e0;background:white;border-radius:12px;padding:14px;font-size:14px;line-height:1.7}.diff b{color:#355846}.diff p{margin:5px 0 0}.list{margin:10px 0 0}.item{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #e5e9e3;padding:12px 0;align-items:center}.item:last-child{border-bottom:0}.item small{color:#7c877f;display:block;margin-top:3px}.item button{white-space:nowrap}
+.disclaimer{color:#728075;font-size:12px;line-height:1.6;margin:14px 0}.save-status{font-size:13px;color:#5e7968;margin-top:8px}
+#notice{position:fixed;right:15px;bottom:15px;background:#24493f;color:white;border-radius:12px;padding:12px 16px;font-size:13px;display:none;z-index:20}
+@media(max-width:600px){.shell{width:calc(100% - 28px);padding-top:19px}.top{margin-bottom:30px}.catalog{grid-template-columns:1fr}.passage{min-height:95px}.metrics{grid-template-columns:1fr 1fr}.differences{grid-template-columns:1fr}.voice-controls button{flex:1;min-width:125px}.panel{border-radius:17px}.item{align-items:flex-start}.item button{font-size:12px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="shell">
+<header class="top"><div class="logo">Р</div><div><div class="topname">Речь руководителя</div><div class="subname">Отдельная практика · чтение вслух</div></div></header>
+<div id="app" aria-live="polite"></div>
+</main>
+<div id="notice" role="status"></div>
+<script src="./voice.js"></script>
+<script>
+(function(){
+"use strict";
+const READING_TEXTS=[
+["Промежуточная приёмка","Начальный","На текущем этапе завершена подготовка поверхностей в трёх помещениях. Перед окраской необходимо провести промежуточную приёмку и зафиксировать выявленные замечания. После устранения несоответствий представим помещения для повторной проверки. Это позволит исключить дополнительные затраты на переделку."],
+["Доклад о сроках","Начальный","По состоянию на сегодня фактический объём работ отстаёт от планового. Основная причина — задержка передачи фронта работ смежными подрядчиками. Предлагаю согласовать обновлённый график и закрепить ответственных за выполнение корректирующих мероприятий."],
+["Разграничение полномочий","Начальный","Для эффективной координации проекта необходимо разграничить зоны ответственности. Решения по организации работ принимаются в пределах согласованных полномочий. Вопросы, влияющие на бюджет, сроки или технические решения, передаются руководителю на согласование."],
+["Планёрка на объекте","Средний","Предлагаю начать совещание с короткого отчёта о фактическом выполнении работ. На сегодняшний день первый этап завершён, второй находится в работе, а по третьему сохраняется риск отклонения от графика. Основной ограничивающий фактор — несвоевременная готовность смежных участков. Для восстановления плановых сроков необходимо согласовать последовательность операций и закрепить ответственных за передачу фронта работ. По итогам совещания предлагаю зафиксировать решения и контрольные даты, после чего провести повторную сверку плана и факта."],
+["Дефектная ведомость","Средний","По результатам технического осмотра сформирована дефектная ведомость с указанием помещений, характера замечаний и предполагаемого объёма их устранения. Часть несоответствий связана с качеством подготовки основания, остальные требуют дополнительной проверки. До начала исправлений необходимо согласовать технологию, определить исполнителей и установить контрольные сроки. После завершения работ проведём повторный осмотр. Отдельно предлагаю рассмотреть причины повторяющихся дефектов, чтобы предотвратить их появление на следующих этапах."],
+["Обоснование новой технологии","Средний","Мы рассмотрели возможность изменения технологии подготовки поверхностей. Предлагаемое решение позволяет сократить количество операций, однако его эффективность нельзя оценивать только по расходу материалов. Необходимо также учесть трудоёмкость, время набора прочности, сложность последующей обработки и требования к качеству финишного покрытия. Перед внедрением предлагаю провести пробный участок и зафиксировать фактические трудозатраты. По результатам испытаний подготовим сравнительный расчёт и представим его для согласования."],
+["Управление рисками","Средний","При анализе текущего графика выявлено несколько факторов, способных повлиять на срок сдачи объекта. Наибольшее внимание необходимо уделить поставкам материалов и готовности участков для последующих видов работ. Предлагаю не ждать возникновения задержек, а заранее определить возможные последствия и меры реагирования. Для каждого значимого риска следует назначить ответственного, установить контрольную дату и согласовать резервный вариант действий. Это позволит принимать решения своевременно и сократить вероятность срыва графика."],
+["Финансовое положение проекта","Средний","По предварительным расчётам объект остаётся прибыльным, однако график поступления денежных средств не совпадает со сроками обязательных выплат. В результате возникает кассовый разрыв, который может повлиять на оплату труда и поставок. Для принятия решения необходимо актуализировать платёжный календарь, уточнить ожидаемые поступления и согласовать приоритеты платежей. При этом важно отделять показатели прибыли от фактического остатка денежных средств. После проверки представлю несколько вариантов покрытия временного дефицита ликвидности."],
+["Представление решения руководителю","Продвинутый","Предлагаю рассмотреть два варианта организации следующего этапа работ. Первый предполагает увеличение численности исполнителей и позволяет сократить календарную продолжительность, но потребует дополнительных затрат на мобилизацию и координацию. Второй вариант сохраняет текущий состав бригад и укладывается в согласованный бюджет, однако не обеспечивает необходимый резерв по срокам. С моей точки зрения, выбор зависит от приоритета проекта: минимизации расходов либо соблюдения целевой даты завершения. Перед утверждением решения предлагаю уточнить критический путь, проверить доступность материалов и согласовать допустимое отклонение бюджета."],
+["Переговоры с техническим заказчиком","Продвинутый","По итогам последнего осмотра мы систематизировали замечания технического надзора и подготовили план их устранения. По части позиций требуются только локальные исправления; по остальным необходимо уточнить критерии приёмки и согласовать последовательность действий. Мы готовы представить подтверждение выполненных работ и организовать повторную проверку в согласованный срок. Вместе с тем предлагаю отдельно зафиксировать изменения, которые выходят за пределы первоначального объёма обязательств. Это позволит избежать неоднозначного толкования договорённостей и обеспечить прозрачный порядок закрытия работ."],
+["Выступление перед командой","Продвинутый","Наша цель на ближайшую неделю — завершить согласованные объёмы без потери качества и непредусмотренных переделок. Для этого каждый участник должен понимать свой фронт работ, ожидаемый результат и критерии готовности участка. Мы будем ежедневно сверять фактическое выполнение с графиком и оперативно устранять препятствия, влияющие на последовательность операций. Если возникает вопрос, который невозможно решить в пределах имеющихся полномочий, его необходимо своевременно передать на согласование. Важно, чтобы все решения фиксировались и были понятны каждому исполнителю. Итогом недели должен стать не просто выполненный объём, а подтверждённый результат, готовый к приёмке."],
+["Итоговый доклад о ходе работ","Продвинутый","По состоянию на отчётную дату основной объём подготовительных работ завершён. Фактические показатели в целом соответствуют утверждённому графику, однако по отдельным помещениям сохраняются отклонения, обусловленные необходимостью устранения выявленных несоответствий. Для сокращения влияния этих замечаний на общий срок завершения проекта сформирован план корректирующих действий. Ответственные исполнители назначены, контрольные точки определены, взаимодействие со смежными подрядчиками организовано. Вопросы, требующие дополнительных финансовых решений, вынесены на согласование. Предлагаю принять текущий статус к сведению, подтвердить приоритеты следующего этапа и согласовать дату промежуточной приёмки выполненных работ."]
+];
+const KEY="rukovoditel-trainer-v1";
+const app=document.getElementById("app");
+const safe=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const words=s=>(String(s||"").toLowerCase().replaceAll("ё","е").match(/[а-яa-z0-9]+(?:-[а-яa-z0-9]+)?/gi)||[]);
+const moscowDay=()=>new Intl.DateTimeFormat("sv-SE",{timeZone:"Europe/Moscow",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+let currentIndex=null,result=null,saved=false,clipId=null,recordingTranscript="",reviewSelf="";
+function getHistory(){
+ try{const d=JSON.parse(localStorage.getItem(KEY)||"null");return d&&Array.isArray(d.history)?d.history:[]}catch(e){return []}
+}
+function saveAttempt(item){
+ try{
+  const d=JSON.parse(localStorage.getItem(KEY)||"null")||{version:1,history:[],sequence:0};
+  if(!Array.isArray(d.history))d.history=[];
+  d.sequence=(Number(d.sequence)||0)+1;
+  d.history.push(item);
+  if(d.history.length>5000)d.history=d.history.slice(-3500);
+  localStorage.setItem(KEY,JSON.stringify(d));return true
+ }catch(e){return false}
+}
+function toast(t){
+ const n=document.getElementById("notice");n.textContent=t;n.style.display="block";
+ setTimeout(()=>{n.style.display="none"},3300)
+}
+function compare(reference,heard,duration){
+ const a=words(reference),b=words(heard),n=a.length,m=b.length;
+ if(!m)return null;
+ const dp=Array.from({length:n+1},()=>new Uint16Array(m+1));
+ for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)
+  dp[i][j]=a[i]===b[j]?1+dp[i+1][j+1]:Math.max(dp[i+1][j],dp[i][j+1]);
+ const missed=[],extra=[];let i=0,j=0;
+ while(i<n&&j<m){
+  if(a[i]===b[j]){i++;j++}
+  else if(dp[i+1][j]>=dp[i][j+1])missed.push(a[i++]);
+  else extra.push(b[j++]);
+ }
+ while(i<n)missed.push(a[i++]);
+ while(j<m)extra.push(b[j++]);
+ const matched=dp[0][0];
+ const unique=a=>[...new Set(a)].slice(0,10);
+ const fillers=["ну","вот","типа","короче","ээ","эээ","эм","значит"];
+ const fillerWords=extra.filter(w=>fillers.includes(w));
+ return {match:Math.round(100*matched/Math.max(n,m)),matched,expected:n,recognized:m,missed:unique(missed),extra:unique(extra),fillerWords:unique(fillerWords),pace:duration>3000?Math.round(m*60000/duration):null};
+}
+function reportResults(){
+ const history=getHistory().filter(h=>h.type==="read"), scored=history.filter(h=>Number.isFinite(h.readingMatch));
+ const avg=scored.length?Math.round(scored.reduce((n,h)=>n+h.readingMatch,0)/scored.length):null;
+ return {history,count:history.length,scored:scored.length,avg};
+}
+function home(){
+ window.TrainerVoice.reset();currentIndex=null;result=null;saved=false;clipId=null;recordingTranscript="";
+ const stats=reportResults();
+ app.innerHTML='<div class="eyebrow">Самостоятельная практика речи</div><h1>Чтение вслух</h1>'+
+ '<p class="lead">Отдельный тренажёр: выбираешь профессиональный текст, читаешь его на запись, слушаешь себя и получаешь разбор совпадения слов, если браузер распознаёт речь.</p>'+
+ '<div class="panel"><h2>Как заниматься</h2><p class="muted">Прочитай текст вслух в нормальном темпе, делая смысловые паузы. Останови запись, прослушай её и нажми «Проверить чтение». Тренажёр покажет возможные пропуски, добавленные слова и темп. А интонацию, артикуляцию и убедительность пока оцениваешь сам.</p>'+
+ '<div class="metrics"><div class="metric"><b>'+stats.count+'</b><span>Текстов прочитано</span></div><div class="metric"><b>'+stats.scored+'</b><span>С распознаванием</span></div><div class="metric"><b>'+(stats.avg===null?'—':stats.avg+'%')+'</b><span>Среднее совпадение</span></div></div></div>'+
+ '<div class="section-title">Выбери текст</div><div class="catalog">'+READING_TEXTS.map((r,i)=>
+ '<button class="passage" data-open="'+i+'"><b>'+(i+1)+'. '+safe(r[0])+'</b><small>'+safe(r[1])+' · '+words(r[2]).length+' слов · примерно '+Math.max(1,Math.ceil(words(r[2]).length/115))+' мин</small></button>').join("")+'</div>'+
+ (stats.history.length?'<div class="section-title">Последние записи</div><div class="panel">'+stats.history.slice(-8).reverse().map(h=>
+ '<div class="item"><div><b>'+safe((h.id||"").replace("Чтение: ",""))+'</b><small>'+safe(h.day||"")+' · '+(Number.isFinite(h.readingMatch)?'Совпадение '+h.readingMatch+'%':'Без распознавания')+'</small></div>'+
+ (h.clipId?'<button class="secondary" data-play="'+safe(h.clipId)+'">Прослушать</button>':'')+'</div>').join("")+'</div>':'')+
+ '<div class="actions"><a class="link" href="./index.html">← К основному тренажёру</a></div>';
+}
+function open(index){
+ const n=Number(index);if(!Number.isInteger(n)||n<0||n>=READING_TEXTS.length)return;
+ window.TrainerVoice.reset();currentIndex=n;result=null;saved=false;clipId=null;recordingTranscript="";reviewSelf="";
+ render();
+}
+function showResults(){
+ if(!result)return "";
+ if(!result.matchData)return '<div class="results"><h2>Запись готова</h2><p class="muted">Браузер не вернул распознанный текст. Балл не выставляем: без расшифровки точность чтения определить нельзя. Прослушай запись и оцени, насколько уверенно прозвучал текст.</p>'+
+ '<div class="actions"><button class="secondary" data-self="уверенно">Прочитал уверенно</button><button class="secondary" data-self="повторить">Нужно повторить</button></div></div>';
+ const d=result.matchData;
+ const minor=d.match>=90?'Высокое совпадение распознанного текста.':d.match>=75?'Есть отдельные расхождения с исходным текстом.':'Распознанный текст заметно отличается от образца.';
+ return '<div class="results"><div class="eyebrow">Разбор чтения</div><h2>'+minor+'</h2>'+
+ '<div class="metrics"><div class="metric"><b>'+d.match+'%</b><span>Совпадение слов</span></div><div class="metric"><b>'+(d.pace===null?'—':d.pace)+'</b><span>Распознанных слов/мин</span></div><div class="metric"><b>'+d.fillerWords.length+'</b><span>Возможные слова-паразиты</span></div></div>'+
+ '<div class="differences"><div class="diff"><b>Возможные пропуски</b><p>'+(d.missed.length?safe(d.missed.join(", ")):'Не обнаружены')+'</p></div>'+
+ '<div class="diff"><b>Дополнительные слова</b><p>'+(d.extra.length?safe(d.extra.join(", ")):'Не обнаружены')+'</p></div></div>'+
+ '<div class="section-title">Что распознал браузер</div><p class="muted">'+safe(result.transcript)+'</p>'+
+ '<p class="disclaimer">Это оценка совпадения слов, а не точности произношения, интонации или уверенности. Распознавание может ошибаться, особенно при строительных терминах, паузах и шуме.</p>'+
+ '<div class="section-title">Как звучало?</div><div class="actions"><button class="secondary" data-self="уверенно">Уверенно</button><button class="secondary" data-self="повторить">Нужно повторить</button></div></div>';
+}
+function render(){
+ if(currentIndex===null){home();return}
+ const r=READING_TEXTS[currentIndex],v=window.TrainerVoice.state(),canAssess=!!(v.blob&&!v.recording&&!v.saving);
+ app.innerHTML='<div class="eyebrow">Текст '+(currentIndex+1)+' из '+READING_TEXTS.length+' · '+safe(r[1])+'</div>'+
+ '<h1>'+safe(r[0])+'</h1>'+
+ '<p class="lead">Прочитай текст так, будто докладываешь руководителю или выступаешь перед коллегами. Не торопись, выделяй главное голосом.</p>'+
+ '<section class="panel"><div class="reading-text">'+safe(r[2])+'</div>'+
+ '<div class="tip"><b>Задача:</b> точные профессиональные термины, спокойный темп и паузы по смыслу.</div>'+
+ window.TrainerVoice.box({record:!saved})+
+ (!saved?(canAssess?'<div class="actions"><button class="primary" data-action="assess">Проверить чтение</button></div>':
+ '<p class="mini">Нажми «Записать голос», прочитай весь текст, затем останови запись. После сохранения появится проверка.</p>'):'')+
+ (saved?showResults():'')+
+ '<p class="save-status">'+(saved?'Результат добавлен в журнал обучения. Аудиозапись доступна для повторного прослушивания на этом устройстве.':'')+'</p></section>'+
+ '<div class="actions">'+(currentIndex<READING_TEXTS.length-1?'<button class="primary" data-action="next">Следующий текст</button>':'')+
+ '<button class="secondary" data-action="again">Повторить этот текст</button>'+
+ '<button class="link" data-action="library">← Список текстов</button></div>';
+}
+function assess(){
+ const v=window.TrainerVoice.state();if(currentIndex===null||saved||!v.blob||v.recording||v.saving)return;
+ const r=READING_TEXTS[currentIndex],transcript=(v.transcript||recordingTranscript||"").trim();
+ const matchData=compare(r[2],transcript,v.durationMs||0);
+ result={transcript,matchData};
+ clipId=v.clipId||clipId;
+ const payload={id:"Чтение: "+r[0],type:"read",ok:true,day:moscowDay(),time:new Date().toISOString(),clipId:clipId,
+ input:transcript.slice(0,500),prompt:r[2],example:r[0],hintLevel:0,usedSpeech:!!transcript,
+ readingMatch:matchData?matchData.match:null,readingPace:matchData?matchData.pace:null,
+ readingMissed:matchData?matchData.missed:[],readingExtra:matchData?matchData.extra:[],
+ readingDurationMs:v.durationMs||null,readingSelf:null,readingVersion:2};
+ saved=saveAttempt(payload);
+ if(!saved)toast("Не удалось сохранить статистику. Проверь место в браузере.");
+ render();
+}
+function selfRate(rate){
+ if(!result)return;
+ const hist=getHistory(),index=hist.map(h=>h.id==="Чтение: "+READING_TEXTS[currentIndex][0]&&h.type==="read").lastIndexOf(true);
+ if(index>=0){
+  try{const d=JSON.parse(localStorage.getItem(KEY));d.history[index].readingSelf=rate;localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}
+ }
+ reviewSelf=rate;toast(rate==="уверенно"?"Самооценка сохранена":"Добавили текст для повторения");
+ const btns=app.querySelectorAll("[data-self]");btns.forEach(x=>x.disabled=true);
+}
+app.addEventListener("click",e=>{
+ const play=e.target.closest("[data-play]");if(play){window.TrainerVoice.playClip(play.dataset.play);return}
+ const passage=e.target.closest("[data-open]");if(passage){open(passage.dataset.open);return}
+ const self=e.target.closest("[data-self]");if(self){selfRate(self.dataset.self);return}
+ const a=e.target.closest("[data-action]");if(!a)return;
+ const action=a.dataset.action;
+ if(action==="library"){home();return}
+ if(action==="next"){open(currentIndex+1);return}
+ if(action==="again"){open(currentIndex);return}
+ if(action==="voice-record"){
+  if(currentIndex===null||saved)return;
+  const reading=currentIndex;
+  window.TrainerVoice.record(()=>{if(currentIndex===reading)render()},id=>{if(currentIndex===reading)clipId=id},transcript=>{if(currentIndex===reading)recordingTranscript=transcript});
+  return;
+ }
+ if(action==="voice-stop"){
+  const reading=currentIndex;window.TrainerVoice.stop(()=>{if(currentIndex===reading)render()});return;
+ }
+ if(action==="voice-download"){window.TrainerVoice.download();return}
+ if(action==="assess"){assess();return}
+});
+home();
+})();
+</script>
+</body>
+</html>
