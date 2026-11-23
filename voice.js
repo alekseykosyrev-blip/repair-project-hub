@@ -1,7 +1,7 @@
 (function(){
 "use strict";
 const SpeechAPI=window.SpeechRecognition||window.webkitSpeechRecognition;
-let voice={recorder:null,stream:null,chunks:[],recording:false,saving:false,blob:null,url:null,saved:false,clipId:null,recognizer:null,listening:false,status:""};
+let voice={recorder:null,stream:null,chunks:[],recording:false,saving:false,blob:null,url:null,saved:false,clipId:null,recognizer:null,listening:false,status:"",transcript:"",durationMs:0,startedAt:0,speechError:""};
 const escapeHTML=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function refresh(update){if(typeof update==="function")update()}
 function reset(){
@@ -9,7 +9,7 @@ function reset(){
  if(voice.recorder&&voice.recorder.state!=="inactive"){try{voice.recorder.onstop=null;voice.recorder.stop()}catch(e){}}
  if(voice.stream)voice.stream.getTracks().forEach(t=>t.stop());
  if(voice.url)URL.revokeObjectURL(voice.url);
- voice={recorder:null,stream:null,chunks:[],recording:false,saving:false,blob:null,url:null,saved:false,clipId:null,recognizer:null,listening:false,status:""};
+ voice={recorder:null,stream:null,chunks:[],recording:false,saving:false,blob:null,url:null,saved:false,clipId:null,recognizer:null,listening:false,status:"",transcript:"",durationMs:0,startedAt:0,speechError:""};
 }
 let dbPromise=null;
 function database(){
@@ -42,7 +42,7 @@ async function playClip(id){
 }
 const canRecord=()=>!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&window.MediaRecorder);
 const canDictate=()=>!!SpeechAPI;
-async function record(update,complete){
+async function record(update,complete,onTranscript){
  if(!canRecord()||voice.recording||voice.saving){voice.status="Запись недоступна или уже запущена";refresh(update);return}
  if(voice.listening&&voice.recognizer){try{voice.recognizer.abort()}catch(e){}}
  let stream;
@@ -52,7 +52,7 @@ async function record(update,complete){
   const type=types.find(t=>MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t));
   const recorder=new MediaRecorder(stream,type?{mimeType:type}:undefined);
   if(voice.url)URL.revokeObjectURL(voice.url);
-  voice.recorder=recorder;voice.stream=stream;voice.chunks=[];voice.recording=true;voice.saving=false;voice.blob=null;voice.url=null;voice.saved=false;voice.clipId=null;voice.status="";
+  voice.recorder=recorder;voice.stream=stream;voice.chunks=[];voice.recording=true;voice.saving=false;voice.blob=null;voice.url=null;voice.saved=false;voice.clipId=null;voice.status="";voice.transcript="";voice.durationMs=0;voice.startedAt=Date.now();voice.speechError="";
   recorder.ondataavailable=e=>{if(e.data&&e.data.size)voice.chunks.push(e.data)};
   recorder.onerror=()=>{voice.status="Ошибка записи. Попробуй повторить";voice.recording=false;voice.saving=false;stream.getTracks().forEach(t=>t.stop());refresh(update)};
   recorder.onstop=async()=>{
@@ -68,7 +68,21 @@ async function record(update,complete){
    }else voice.status="Запись пуста. Попробуй ещё раз";
    voice.saving=false;refresh(update);
   };
-  recorder.start();refresh(update);
+  recorder.start();
+  if(typeof onTranscript==="function"&&SpeechAPI){
+   try{
+    const listen=new SpeechAPI();voice.recognizer=listen;voice.listening=true;
+    listen.lang="ru-RU";listen.interimResults=true;listen.continuous=true;
+    listen.onresult=e=>{
+     const result=Array.from(e.results).map(r=>r[0]?.transcript||"").join(" ").trim();
+     voice.transcript=result;onTranscript(result);
+    };
+    listen.onerror=e=>{voice.speechError=e.error==="not-allowed"?"Нет разрешения на распознавание":e.error==="network"?"Распознавание требует соединения с сетью":"Распознавание прервано: "+e.error};
+    listen.onend=()=>{voice.listening=false;voice.recognizer=null;refresh(update)};
+    listen.start();
+   }catch(e){voice.listening=false;voice.speechError="Распознавание недоступно. Аудиозапись продолжается"}
+  }
+  refresh(update);
  }catch(e){
   if(stream)stream.getTracks().forEach(t=>t.stop());
   voice.recording=false;voice.status="Доступ к микрофону не получен. Проверь разрешения браузера";refresh(update);
@@ -76,6 +90,8 @@ async function record(update,complete){
 }
 function stop(update){
  if(voice.recorder&&voice.recorder.state==="recording"){
+  voice.durationMs=Math.max(0,Date.now()-(voice.startedAt||Date.now()));
+  if(voice.listening&&voice.recognizer){try{voice.recognizer.stop()}catch(e){}}
   voice.saving=true;voice.recorder.stop();
   if(voice.stream)voice.stream.getTracks().forEach(t=>t.stop());
   refresh(update);
@@ -121,9 +137,10 @@ function box(opts){
   (voice.listening?'<p class="mini">Говори, затем останови диктовку. Текст появится в ответе.</p>':"")+
   (voice.url?'<audio controls preload="metadata" src="'+escapeHTML(voice.url)+'"></audio>':"")+
   (voice.status?'<p class="mini">'+escapeHTML(voice.status)+'</p>':"")+
+  (voice.speechError?'<p class="mini">'+escapeHTML(voice.speechError)+'</p>':"")+
   (recordEnabled&&!canRecord()?'<p class="mini">Запись недоступна. Проверь браузер и доступ к микрофону.</p>':"")+
   (dictationEnabled&&!canDictate()?'<p class="mini">Распознавание не поддерживается этим браузером, используй клавиатуру.</p>':"")+
-  '<p class="mini">'+(recordEnabled?"Записи сохраняются только в этом браузере. Прослушивание и скачивание доступны после остановки. Произношение автоматически не оценивается.":"Перед отправкой проверь распознанный текст. Распознавание зависит от браузера и сети.")+'</p>'+
+  '<p class="mini">'+(recordEnabled?"Записи сохраняются только в этом браузере. При распознавании речь может обрабатываться сервисом браузера. Точность произношения не оценивается автоматически.":"Перед отправкой проверь распознанный текст. Распознавание зависит от браузера и сети.")+'</p>'+
  '</div>';
 }
 window.TrainerVoice={box,record,stop,dictate,download,playClip,reset,canRecord,canDictate,state:()=>voice};
