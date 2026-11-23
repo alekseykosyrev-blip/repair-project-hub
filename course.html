@@ -55,11 +55,21 @@ nav.footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:15px;ma
 button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #8ac59e;outline-offset:3px}
 @media(max-width:600px){.hero{padding:23px 19px}.illustration{right:14px;top:25px;font-size:49px;opacity:.72}h1{margin-right:55px}.level .emoji{width:51px;height:51px;min-width:51px;font-size:25px}.level{padding:12px;gap:12px}.level .status{font-size:11px}.actions button{flex:1}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.wallet{display:flex;align-items:center;gap:8px;background:#fff9e5;border:1px solid #eedb9a;color:#745213;padding:9px 13px;border-radius:999px;font-weight:800;font-size:13px;margin-left:auto}
+.shop{margin:18px 0 0;padding:22px;background:white;border:1px solid #dce7dc;border-radius:20px}
+.shop h2{font-size:19px;margin:0 0 8px}.shop p{margin:5px 0 15px;color:#64776b;font-size:13px}
+.shop-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.shop-item{border:1px solid #dce7dc;border-radius:14px;padding:15px;background:#f9fbf7;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.shop-item b{font-size:15px}.shop-item small{color:#64776b;line-height:1.45}.shop-item button{margin-top:auto}
+.theme-blue{background:#f2f6fc;color:#233b53}.theme-blue .hero{background:linear-gradient(128deg,#dceafe,#e9ecff 70%,#fff0e9)}
+.theme-blue .primary{background:#315ca9;border-color:#315ca9}.theme-blue .progress>div{background:linear-gradient(90deg,#76aeef,#315ca9)}
+.theme-sunset{background:#fff8f0;color:#503d30}.theme-sunset .hero{background:linear-gradient(128deg,#ffe0cc,#fceac0 70%,#f5e3ed)}
+.theme-sunset .primary{background:#ad613c;border-color:#ad613c}.theme-sunset .progress>div{background:linear-gradient(90deg,#efb17c,#ad613c)}
+@media(max-width:650px){.shop-grid{grid-template-columns:1fr}.wallet{font-size:12px;padding:7px 10px}.back{display:none}}
 </style>
 </head>
 <body>
 <div class="shell">
-<header class="top"><div class="logo">Р</div><div><div class="brand">Речь руководителя<div class="sub">Пошаговая программа</div></div></div><a class="back" href="./index.html">Все упражнения</a></header>
+<header class="top"><div class="logo">Р</div><div><div class="brand">Речь руководителя<div class="sub">Пошаговая программа</div></div><span class="wallet" id="wallet">🪙 0</span></div><a class="back" href="./index.html">Все упражнения</a></header>
 <main id="app"></main>
 <nav class="footer"><a href="./reading.html">Библиотека чтения</a><a href="./index.html">Старый тренажёр и журнал</a></nav>
 </div>
@@ -72,35 +82,65 @@ const levels=[
  ["Дефект","Недостаток или ошибка в выполненной работе.","На стене обнаружен дефект."],
  ["Срок","Дата или время, к которым нужно закончить работу.","Уточни срок исправления."],
  ["Этап","Отдельная часть большой работы.","Первый этап завершён."],
- ["Результат","То, что получилось после выполненных действий.","Проверим результат после окраски."]],
+ ["Результат","То, что получилось после выполненных действий.","Проверим результат после окраски."],
+ ["Замечание","Указание на недостаток, который нужно проверить или исправить.","По окраске осталось два замечания."],
+ ["Проверка","Действие, с помощью которого выясняют, соответствует ли работа требованиям.","После исправления проведём проверку."],
+ ["Объём","Количество работы, которое нужно выполнить или уже выполнили.","Объём покраски составляет сто квадратных метров."],
+ ["Причина","То, из-за чего возникла ситуация или проблема.","Уточним причину появления трещины."],
+ ["Исправление","Устранение обнаруженного недостатка.","Исправление дефекта займёт один день."],
+ ["Задача","Конкретное действие или результат, который нужно получить.","Задача бригады — закончить покраску комнаты."]],
  sentence:"Мы обнаружили ___ на окрашенной стене.",answer:"дефект",
  read:"Есть дефект на стене. Нужно его исправить. После исправления проверим результат."},
  {name:"Уверенный специалист",emoji:"🧩",desc:"Узнавай рабочие термины и используй их в коротких фразах.",terms:[
  ["Фронт работ","Участок, подготовленный для начала конкретных работ.","Фронт работ для маляров пока не готов."],
  ["Смежные работы","Работы других исполнителей, от которых зависит твоя работа.","Электрика и покраска — смежные работы."],
  ["Приёмка","Проверка готового результата перед его принятием.","После исправлений проведём приёмку."],
- ["План-факт","Сравнение того, сколько собирались сделать и сколько сделали.","Сверим план-факт за неделю."]],
+ ["План-факт","Сравнение того, сколько собирались сделать и сколько сделали.","Сверим план-факт за неделю."],
+ ["Участок","Определённая часть объекта, на которой выполняются работы.","Этот участок готов к окраске."],
+ ["Подрядчик","Организация или человек, выполняющие работы по договору.","Подрядчик закончил монтаж электрики."],
+ ["Готовность","Состояние работы, когда её можно предъявить для проверки или следующего этапа.","Проверим готовность помещения к окраске."],
+ ["Отклонение","Разница между тем, что планировали, и тем, что получилось.","Выявлено отклонение от графика."],
+ ["Контроль качества","Проверка того, что результат соответствует установленным требованиям.","После подготовки проведём контроль качества."],
+ ["Ответственность","Обязанность отвечать за порученную задачу и её результат.","Ответственность за подготовку стен закреплена за мастером."]],
  sentence:"Электрики ещё работают, поэтому ___ для маляров не готов.",answer:"фронт работ",
  read:"Маляры закончили подготовку стен. Следующий этап — покраска. Сначала необходимо проверить готовность фронта работ. После завершения работ проведём приёмку."},
  {name:"Опытный специалист",emoji:"🔍",desc:"Учись связывать проблему, причину и решение.",terms:[
  ["Корректирующие действия","Меры, которые устраняют причину проблемы и помогают избежать её повторения.","После выяснения причин определим корректирующие действия."],
  ["График работ","План последовательности работ и их сроков.","Проверим график работ перед началом следующего этапа."],
  ["Ресурсы","Люди, материалы, оборудование и время, необходимые для работы.","Для завершения этапа нужно проверить ресурсы."],
- ["Риск","То, что может пойти не так и повлиять на результат.","Задержка поставки — риск для сроков."]],
+ ["Риск","То, что может пойти не так и повлиять на результат.","Задержка поставки — риск для сроков."],
+ ["Последствие","То, к чему может привести действие, ошибка или задержка.","Последствием задержки станет перенос окраски."],
+ ["Ограничение","Условие, которое мешает выполнить задачу выбранным способом.","Отсутствие доступа — ограничение для начала работ."],
+ ["Приоритет","То, чем нужно заняться в первую очередь.","Приоритет — устранить дефекты до приёмки."],
+ ["Повторная проверка","Проверка результата ещё раз после исправления замечаний.","После ремонта проведём повторную проверку."],
+ ["План действий","Последовательность шагов для решения задачи.","Составим план действий по устранению замечаний."],
+ ["Простой","Время, когда работники вынужденно не могут выполнять свою работу.","Из-за отсутствия материалов возник простой."]],
  sentence:"Нехватка материалов создаёт ___ задержки работ.",answer:"риск",
  read:"По окрашенным поверхностям выявлены дефекты. Нужно установить причины и определить корректирующие действия. Затем уточним необходимые ресурсы и проверим график работ. Это поможет снизить риск повторной задержки."},
  {name:"Руководитель",emoji:"🧭",desc:"Ставь задачи, говори о сроках и объясняй решения.",terms:[
  ["Делегирование","Передача задачи другому человеку с необходимыми полномочиями.","Проверку участка можно делегировать мастеру."],
  ["Полномочия","Право принимать решения в установленных пределах.","Мастер должен понимать свои полномочия."],
  ["Ответственный","Человек, который отвечает за выполнение задачи.","Назначим ответственного за устранение дефекта."],
- ["Согласование","Подтверждение решения всеми участниками, чьё одобрение требуется.","Изменение сроков требует согласования."]],
+ ["Согласование","Подтверждение решения всеми участниками, чьё одобрение требуется.","Изменение сроков требует согласования."],
+ ["Поручение","Конкретная задача, переданная исполнителю.","Поручение по устранению дефектов получил мастер."],
+ ["Контрольная точка","Момент, когда проверяют выполнение запланированного этапа.","Контрольная точка назначена на пятницу."],
+ ["Доклад","Краткое сообщение о состоянии работ, проблемах и действиях.","Подготовлю доклад о готовности помещений."],
+ ["Критерии приёмки","Признаки и требования, по которым оценивают выполненную работу.","Согласуем критерии приёмки перед проверкой."],
+ ["Зона ответственности","Задачи и результаты, за которые отвечает человек.","В моей зоне ответственности контроль отделки."],
+ ["Протокол","Документ, где фиксируют решения встречи и сроки выполнения.","Решения совещания внесём в протокол."]],
  sentence:"За устранение дефекта необходимо назначить ___ .",answer:"ответственного",
  read:"Входная группа и санузлы находятся на завершающем этапе. По окрашенным поверхностям выявлены отдельные дефекты. Назначим ответственных и согласуем сроки их исправления. После проверки результата передадим готовые помещения на приёмку."},
  {name:"Профессионал",emoji:"🏆",desc:"Аргументируй решения и готовь связные выступления.",terms:[
  ["Критический путь","Цепочка зависимых работ, которая определяет минимальный срок завершения проекта.","Задержка на критическом пути может сдвинуть сдачу."],
  ["Кассовый разрыв","Временная нехватка денег для платежей, даже если проект в целом прибыльный.","Поступление оплаты задержалось и возник кассовый разрыв."],
  ["Накладные расходы","Затраты на организацию и обеспечение работы, не относимые напрямую к отдельной операции.","При расчёте стоимости учитываем накладные расходы."],
- ["Управленческое решение","Выбор конкретного действия руководителем на основе информации и последствий.","Для устранения проблемы требуется управленческое решение."]],
+ ["Управленческое решение","Выбор конкретного действия руководителем на основе информации и последствий.","Для устранения проблемы требуется управленческое решение."],
+ ["Аргументация","Обоснование позиции с помощью фактов, причин и последствий.","В аргументации решения приведу два расчёта."],
+ ["Компромисс","Решение, которое учитывает важные интересы разных сторон.","Найдём компромисс по последовательности работ."],
+ ["Рентабельность","Соотношение прибыли и выбранной базы расчёта, выраженное в процентах.","Проверим рентабельность проекта."],
+ ["Эскалация","Передача вопроса руководителю более высокого уровня, если нет полномочий решить его.","Нужна эскалация вопроса на уровень руководителя проекта."],
+ ["Корректировка графика","Изменение последовательности или сроков работ с учётом новых обстоятельств.","После согласования оформим корректировку графика."],
+ ["Сводный отчёт","Краткий доклад с основными показателями, проблемами и следующими шагами.","Подготовлю сводный отчёт для руководства."]],
  sentence:"Задержка операции на ___ может изменить дату сдачи объекта.",answer:"критическом пути",
  read:"По итогам осмотра подтверждена готовность основных помещений. Сохраняются замечания к окрашенным поверхностям и отдельные незавершённые смежные работы. Предлагаю закрепить ответственных, согласовать сроки устранения и проверить влияние этих позиций на критический путь. После этого представим обновлённый прогноз завершения проекта и согласуем дальнейшие действия."}
 ];
@@ -114,21 +154,31 @@ function load(){
  const d=JSON.parse(localStorage.getItem(KEY)||"null");
  if(d&&Array.isArray(d.done)&&d.progress&&typeof d.progress==="object")return d;
  }catch(e){}
- return {done:[],progress:{},readingHistory:[]};
+ return {done:[],progress:{},readingHistory:[],coins:0,rewarded:[],purchases:[],theme:"default"};
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){message="Не удалось сохранить прогресс: проверь настройки браузера."}}
 state=load();
+if(!Number.isFinite(state.coins))state.coins=0;
+if(!Array.isArray(state.rewarded))state.rewarded=[];
+if(!Array.isArray(state.purchases))state.purchases=[];
+if(!state.theme)state.theme="default";
+function syncWallet(){const el=document.getElementById("wallet");if(el)el.textContent="🪙 "+state.coins;document.body.classList.remove("theme-blue","theme-sunset");if(state.theme!=="default")document.body.classList.add("theme-"+state.theme)}
+function reward(key,value){if(state.rewarded.includes(key))return;state.rewarded.push(key);state.coins+=value;save();syncWallet()}
+function spend(amount){if(state.coins<amount){message="Недостаточно монет. Зарабатывай их правильными ответами.";return false}state.coins-=amount;save();syncWallet();return true}
+const SHOP=[["blue","🌊 Синяя тема","Оформление в спокойных синих тонах",25],["sunset","🌅 Тёплая тема","Новое оформление в мягких тёплых оттенках",40],["badge","🏅 Значок «Старательный»","Памятный значок за занятия",30]];
+function shopHTML(){return '<section class="shop"><h2>🛍 Магазин достижений</h2><p>За правильные ответы получай монеты и выбирай награды. Покупки не влияют на оценки и открытие уровней.</p><div class="shop-grid">'+SHOP.map(x=>{const owned=state.purchases.includes(x[0]);return '<div class="shop-item"><b>'+x[1]+'</b><small>'+x[2]+'</small><button class="secondary" data-buy="'+x[0]+'" '+(owned&&x[0]==="badge"?'disabled':'')+'>'+(owned?(x[0]==="badge"?"Получено ✓":state.theme===x[0]?"Активно ✓":"Применить"):"🪙 "+x[3])+'</button></div>'}).join("")+'</div>'+(state.purchases.includes("badge")?'<p>🏅 Твой значок: «Старательный»</p>':'')+(message?'<div class="feedback">'+esc(message)+'</div>':'')+'</section>'}
+syncWallet();
 function unlocked(i){return i===0||!!state.done[i-1]}
 function pos(i){return Math.max(0,Number(state.progress[i])||0)}
 function stage(i){const n=levels[i].terms.length;return pos(i)<n*3?"word":pos(i)===n*3?"sentence":"reading"}
 function stepLabel(i){const n=levels[i].terms.length;const p=pos(i);return p<n*3?"Слово "+(Math.floor(p/3)+1)+" из "+n:p===n*3?"Собираем предложение":"Чтение вслух"}
 function viewHome(){
- chosen=null;message="";window.TrainerVoice.reset();
+ chosen=null;message="";window.TrainerVoice.reset();syncWallet();
  const done=state.done.filter(Boolean).length;
  app.innerHTML='<section class="hero"><div class="eyebrow">Учимся от простого к сложному</div><div class="illustration" aria-hidden="true">📚✨</div><h1>Сначала слово.<br>Потом речь.</h1><p class="lead">Каждое новое слово сначала объясняется. Затем ты выбираешь его значение, вспоминаешь самостоятельно и только после этого переходишь к предложениям и чтению.</p><div class="hero-foot"><span class="chip">5 уровней</span><span class="chip">Без перегруза</span><span class="chip">Голос и чтение</span></div></section>'+
  '<div class="section-title">Твой путь · '+done+' из 5 уровней</div><div class="progress"><div style="width:'+(done*20)+'%"></div></div>'+
  '<section class="path">'+levels.map((l,i)=>'<button class="level" data-level="'+i+'" '+(!unlocked(i)?'disabled aria-label="Уровень пока закрыт"':'')+'><span class="emoji" aria-hidden="true">'+l.emoji+'</span><span><b>'+(i+1)+'. '+esc(l.name)+'</b><small>'+esc(l.desc)+'</small></span><span class="status">'+(state.done[i]?'✓ Пройден':!unlocked(i)?'🔒 Закрыт':pos(i)?'Продолжить':'Начать')+'</span></button>').join("")+'</section>'+
- '<p class="hint">Уровень открывается после правильных ответов на слова и завершения чтения. Прошлые 198 ответов и записи прежнего тренажёра не удаляются.</p>'+
+ '<p class="hint">Каждый уровень содержит 10 слов: сначала знакомство, затем проверка понимания и самостоятельное вспоминание. В конце — предложение и чтение. Уровни открываются по результатам занятий. Прежний журнал не удаляется.</p>'+shopHTML()+
  '<div class="actions"><button class="secondary" data-act="restart">Начать курс сначала</button><a class="secondary" href="./index.html" style="text-decoration:none">Старый тренажёр</a></div>';
 }
 function openLevel(i){
@@ -138,7 +188,7 @@ function openLevel(i){
  if(state.done[i]){state.progress[i]=0;save()}
  viewLesson();
 }
-function move(){state.progress[chosen]=pos(chosen)+1;message="";save();window.TrainerVoice.reset();transcript="";readAnalysis=null;viewLesson()}
+function move(){const p=pos(chosen);if(p%3===1)reward("level"+chosen+":choice:"+Math.floor(p/3),2);if(p%3===2)reward("level"+chosen+":recall:"+Math.floor(p/3),3);if(p===3*levels[chosen].terms.length)reward("level"+chosen+":sentence",5);state.progress[chosen]=p+1;message="";save();window.TrainerVoice.reset();transcript="";readAnalysis=null;viewLesson()}
 function viewLesson(){
  if(chosen===null){viewHome();return}
  const l=levels[chosen],p=pos(chosen),n=l.terms.length,kind=stage(chosen);
@@ -187,7 +237,7 @@ function checkedWord(v,expected){return norm(v)===norm(expected)}
 function finish(){
  const v=window.TrainerVoice.state();
  const a=window.TrainerReading.analyze(levels[chosen].read,v.transcript||transcript,v.durationMs);
- state.done[chosen]=true;
+ reward("level"+chosen+":finish",10);state.done[chosen]=true;
  if(!Array.isArray(state.readingHistory))state.readingHistory=[];
  state.readingHistory.push({level:chosen+1,at:new Date().toISOString(),clipId:v.clipId||null,coverage:a.available?a.coverage:null});
  state.progress[chosen]=0;save();window.TrainerVoice.reset();
@@ -200,6 +250,11 @@ function finish(){
 }
 app.addEventListener("click",e=>{
  const target=e.target.closest("button");if(!target)return;
+ if(target.hasAttribute("data-buy")){
+  const item=SHOP.find(x=>x[0]===target.dataset.buy);if(!item)return;
+  if(!state.purchases.includes(item[0])){if(!spend(item[3])){viewHome();return}state.purchases.push(item[0]);}
+  if(item[0]!=="badge")state.theme=item[0];save();viewHome();return;
+ }
  if(target.hasAttribute("data-level")){openLevel(Number(target.dataset.level));return}
  if(target.hasAttribute("data-next")){openLevel(Number(target.dataset.next));return}
  if(target.hasAttribute("data-choice")){
@@ -210,13 +265,13 @@ app.addEventListener("click",e=>{
  if(act==="home"){viewHome();return}
  if(act==="restart"){
   if(confirm("Начать курс с первого уровня? Старый журнал тренировок и аудиозаписи останутся без изменений.")){
-   state={done:[],progress:{},readingHistory:Array.isArray(state.readingHistory)?state.readingHistory:[]};save();viewHome();
+   state={...state,done:[],progress:{},readingHistory:Array.isArray(state.readingHistory)?state.readingHistory:[]};save();viewHome();
   }return;
  }
  if(chosen===null)return;
  if(act==="next"){move();return}
  if(act==="hint"){
-  message="Подсказка: первая буква — «"+levels[chosen].terms[Math.floor(pos(chosen)/3)][0][0]+"».";
+  message="Подсказка: первая буква — «"+levels[chosen].terms[Math.floor(pos(chosen)/3)][0][0]+"». Бесплатно — обучение важнее монет.";
   viewLesson();return;
  }
  if(act==="recall"){
