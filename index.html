@@ -245,7 +245,7 @@ function reportText(){
  ];
  const recent=data.history.slice(-200);
  out.push("ПОСЛЕДНИЕ ОТВЕТЫ (до 200 записей):");
- for(const h of recent)out.push(h.time+" | "+h.type+" | "+h.id+" | "+(legacyExcluded(h)?"исключено из оценки":isIncomplete(h)?"незавершённый ответ":reviewedOk(h)?"верно/знаю":"ошибка/повторить")+" | ответ: "+(h.input||"(не указан)")+(h.prompt?" | задание: "+h.prompt:"")+(h.example?" | ориентир: "+h.example:""));
+ for(const h of recent)out.push(h.time+" | "+h.type+" | "+h.id+" | "+(legacyExcluded(h)?"исключено из оценки":isIncomplete(h)?"незавершённый ответ":reviewedOk(h)?"верно/знаю":"ошибка/повторить")+" | ответ: "+(h.input||"(не указан)")+(h.prompt?" | задание: "+h.prompt:"")+(h.example?" | ориентир: "+h.example:"")+(h.clipId?" | аудиозапись: только в этом браузере":"")+(h.usedSpeech?" | надиктован":""));
  return out.join("\n");
 }
 function saveReport(){
@@ -269,7 +269,7 @@ function renderReport(){
  const rows=a.byType.map(t=>'<div class="stat"><div class="val">'+t.n+'</div><div class="label">'+safe(labelMode[t.type])+'</div></div>').join("");
  const issues=a.weak.slice(0,20).map((x,i)=>'<div class="journal-row"><span>'+safe(x.term)+'</span><small>'+x.bad+' ошибок · '+x.good+' успешных</small></div>').join("");
  const allMistakes=a.mistakes.slice(0,20).map(x=>'<div class="journal-row"><span>'+safe(x.term)+'</span><small>'+x.bad+' ошибок</small></div>').join("");
- const logs=data.history.slice(-100).reverse().map(h=>'<div class="journal-row"><span>'+safe(h.id)+'<small style="display:block;color:#829087;margin-top:4px">'+safe(h.time.slice(0,16).replace("T"," "))+' · '+safe(h.type)+'</small></span><small>'+(!h.ok?"Повторить":"Верно / знаю")+'<span style="display:block;max-width:260px;word-wrap:break-word">'+safe(h.input||"")+'</span></small></div>').join("");
+ const logs=data.history.slice(-100).reverse().map(h=>'<div class="journal-row"><span>'+safe(h.id)+'<small style="display:block;color:#829087;margin-top:4px">'+safe(h.time.slice(0,16).replace("T"," "))+' · '+safe(h.type)+'</small></span><small>'+(h.type==="read"?"Запись сделана":!h.ok?"Повторить":"Верно / знаю")+'<span style="display:block;max-width:260px;word-wrap:break-word">'+safe(h.input||"")+'</span>'+(h.clipId?'<button class="secondary" style="margin-top:8px" data-playclip="'+safe(h.clipId)+'">Прослушать запись</button>':'')+'</small></div>').join("");
  app.innerHTML='<div class="eyebrow">Анализ ответов · время Москвы</div><h1>Журнал обучения</h1><p class="lead">История всех ответов сохраняется в этом браузере. Автоматически проверяются выбор термина, вставка слова, различие понятий и порядок фраз. Карточки и свободный текст оцениваются тобой.</p>'+
  '<div class="grid-stats"><div class="stat"><div class="val">'+a.total+'</div><div class="label">Всего ответов</div></div><div class="stat"><div class="val">'+a.gradedWrong+'</div><div class="label">Ошибки в тестах</div></div><div class="stat"><div class="val">'+(a.accuracy===null?"—":a.accuracy+"%")+'</div><div class="label">Точность тестов</div></div><div class="stat"><div class="val">'+a.count+'</div><div class="label">Сегодня</div></div></div>'+
  '<div class="section-title">Ответы по типам</div><div class="grid-stats">'+rows+'</div>'+
@@ -453,6 +453,12 @@ function renderEnd(){
 app.addEventListener("click",e=>{
  const m=e.target.closest("[data-mode]");if(m){selectedMode=m.dataset.mode;renderHome();return}
  const a=e.target.closest("[data-action]");if(a){
+ if(a.dataset.action==="voice-record"&&current&&!current.done){const task=current;window.TrainerVoice.record(()=>{if(current===task)renderTask()},id=>{if(current===task)task.clipId=id});return}
+ if(a.dataset.action==="voice-stop"){const task=current;window.TrainerVoice.stop(()=>{if(current===task)renderTask()});return}
+ if(a.dataset.action==="voice-download"){window.TrainerVoice.download();return}
+ if(a.dataset.action==="voice-dictate"&&current&&!current.done){const task=current;window.TrainerVoice.dictate(app.querySelector('[name="answer"]'),v=>{if(current===task){task.draft=v;task.usedSpeech=true}},()=>{if(current===task)renderTask()});return}
+ if(a.dataset.action==="read-finish"&&current?.type==="read"&&!current.done&&window.TrainerVoice.state().blob&&!window.TrainerVoice.state().saving){logAnswer(true,"Чтение записано — без автоматической оценки качества");return}
+ if(a.dataset.action==="phrase-record-compare"&&current?.type==="phrase"&&!current.revealed&&window.TrainerVoice.state().blob){current.input=current.draft||"Голосовой ответ записан";current.revealed=true;renderTask();return}
  if(a.dataset.action==="start"){start();return}
  if(a.dataset.action==="review"){selectedMode="mix";session={n:0,limit:20,correct:0,reviewOnly:true,seenIds:[]};lastKeys=[];pickNext();renderTask();return}
  if(a.dataset.action==="extra"){selectedMode="mix";session={n:0,limit:20,correct:0,reviewOnly:false,seenIds:[]};lastKeys=[];pickNext();renderTask();return}
@@ -469,14 +475,15 @@ app.addEventListener("click",e=>{
    current.hintLevel=Math.min(2,(current.hintLevel||0)+1);renderTask();return;
  }
  }
+ const clip=e.target.closest("[data-playclip]");if(clip){window.TrainerVoice.playClip(clip.dataset.playclip);return}
  const step=e.target.closest("[data-step]");if(step&&current?.type==="logic"&&!current.done){const n=Number(step.dataset.step);if(!current.order.includes(n)&&current.order.length<3){current.order.push(n);renderTask();}return}
  const choice=e.target.closest("[data-answer]");if(choice&&current&&!current.done&&(current.type==="quiz"||current.type==="contrast")){current.choice=choice.dataset.answer;logAnswer(current.choice===(current.type==="quiz"?current.term[0]:current.contrast[1]),current.choice);return}
  const rate=e.target.closest("[data-rate]");if(rate&&current&&!current.done){logAnswer(rate.dataset.rate==="true",current.input);return}
 });
-app.addEventListener("input",e=>{if(current&&current.type==="phrase"&&!current.revealed&&e.target.name==="answer")current.draft=e.target.value;});
+app.addEventListener("input",e=>{if(current&&(current.type==="phrase"||current.type==="fill")&&!current.revealed&&e.target.name==="answer")current.draft=e.target.value;});
 app.addEventListener("submit",e=>{
  if(!current)return;
- if(e.target.id==="fill-form"&&!current.done){e.preventDefault();const v=e.target.elements.answer.value;const acceptable=acceptsFill(current.term,v);logAnswer(acceptable,v);}
+ if(e.target.id==="fill-form"&&!current.done){e.preventDefault();const v=e.target.elements.answer.value;current.draft=v;const acceptable=acceptsFill(current.term,v);logAnswer(acceptable,v);}
  if(e.target.id==="phrase-form"&&!current.revealed){e.preventDefault();current.input=e.target.elements.answer.value;current.draft=current.input;current.revealed=true;renderTask();}
 });
 renderHome();
