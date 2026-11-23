@@ -394,7 +394,8 @@ function renderTask(){
  }else if(q.type==="fill"){
  const parts=t[3].split("___");
  content='<div class="topic">Вспомни термин · '+safe(t[1])+'</div><div class="qtitle">'+safe(parts[0])+'<span style="border-bottom:2px solid #9bae9b;color:#47684f"> '+(q.done?safe(t[4].split(",")[0]):"______")+' </span>'+safe(parts[1]||"")+'</div>'+
- (!q.done?'<form id="fill-form"><input class="entry" name="answer" placeholder="Введи слово или выражение" autocomplete="off" autofocus required><div class="actions"><button class="primary" type="submit">Проверить</button><button class="secondary" type="button" data-action="dontknow">Не помню</button></div></form>':"");
+ (!q.done?'<form id="fill-form"><input class="entry" name="answer" value="'+safe(q.draft||"")+'" placeholder="Введи слово или выражение" autocomplete="off" autofocus required><div class="actions"><button class="primary" type="submit">Проверить</button><button class="secondary" type="button" data-action="dontknow">Не помню</button></div></form>':"")+
+ (!q.done?window.TrainerVoice.box({dictate:true}):"");
  }else if(q.type==="card"){
  content='<div class="topic">Карточка · '+safe(t[1])+'</div><div class="qtitle">'+safe(t[2])+'</div>'+
  (q.revealed?'<div class="feedback"><div>Термин:</div><span class="reply">'+safe(t[0])+'</span>'+explainTerm(t)+
@@ -416,6 +417,13 @@ function renderTask(){
  '<p>Главное опорное слово: <b>'+safe(q.phrase[2])+'</b>.</p>'+
  '<p class="mini">Сначала проверь смысл: он сохранён полностью? Затем точность термина: слово уместно или можно выразить мысль без него? Наконец — ясность. Если мысль точная, другой оборот тоже подходит. Не оценивай опечатки как незнание термина. Это самооценка, не автоматическая проверка.</p>'+
  (!q.done?'<div class="actions"><button class="secondary" data-rate="false">Пока трудно</button><button class="primary" data-rate="true">Справился</button></div>':'')+'</div>');
+ content+=window.TrainerVoice.box({record:!q.revealed&&!q.done,dictate:!q.revealed&&!q.done});
+ if(!q.revealed&&!q.done&&window.TrainerVoice.state().blob)content+='<div class="actions"><button class="secondary" data-action="phrase-record-compare">Сравнить записанный ответ</button></div>';
+ }else if(q.type==="read"){
+ const r=q.reading,v=window.TrainerVoice.state();
+ content='<div class="topic">Чтение вслух · '+safe(r[0])+'</div><div class="qtitle">Прочитай текст уверенно и без спешки</div>'+
+ '<div class="reading-text">'+safe(r[1])+'</div>'+window.TrainerVoice.box({record:!q.done})+
+ (!q.done&&v.blob&&!v.recording&&!v.saving?'<div class="actions"><button class="primary" data-action="read-finish">Записал — продолжить</button></div>':'');
  }
  if(q.done){
  if(q.type==="quiz"||q.type==="fill"){
@@ -431,7 +439,7 @@ function renderTask(){
 }
 function logAnswer(ok,input){
  const q=current;
- data.sequence++;data.history.push({id:q.id,type:q.type,ok:!!ok,day:today(),time:new Date().toISOString(),input:String(input||"").slice(0,500),prompt:q.phrase?.[0]||q.contrast?.[0]||q.chain?.[1]||(q.type==="fill"?q.term?.[3]:q.term?.[2])||"",example:q.phrase?.[1]||q.term?.[0]||q.contrast?.[1]||"",hintLevel:q.hintLevel||0});
+ data.sequence++;data.history.push({id:q.id,type:q.type,ok:!!ok,day:today(),time:new Date().toISOString(),clipId:q.clipId||null,usedSpeech:!!q.usedSpeech,input:String(input||"").slice(0,500),prompt:q.phrase?.[0]||q.reading?.[1]||q.contrast?.[0]||q.chain?.[1]||(q.type==="fill"?q.term?.[3]:q.term?.[2])||"",example:q.phrase?.[1]||q.term?.[0]||q.contrast?.[1]||"",hintLevel:q.hintLevel||0});
  if(data.history.length>5000)data.history=data.history.slice(-3500);
  persist();q.ok=!!ok;q.done=true;if(ok)session.correct++;renderTask();
 }
