@@ -293,7 +293,6 @@ function viewLesson(){
  '<div class="actions"><button class="secondary" data-act="home">← К карте уровней</button></div>';
 }
 function checkedWord(v,expected){return norm(v)===norm(expected)}
-function checkedWord(v,expected){return norm(v)===norm(expected)}
 function finish(){
  if(chosen===null||levelState(chosen).phase!=="reading")return;
  const v=window.TrainerVoice.state();const a=window.TrainerReading.analyze(levels[chosen].read,v.transcript||transcript,v.durationMs);
