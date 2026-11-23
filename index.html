@@ -52,7 +52,22 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 .voice-controls .secondary{padding:10px 13px;min-height:44px}
 .voice-box audio{width:100%;margin:10px 0 4px}
 .voice-box .mini{margin:7px 0}
-.reading-text{font-size:clamp(18px,3.4vw,22px);line-height:1.75;color:#293b31;white-space:pre-line;padding:12px 0}
+.reading-text{font-size:clamp(18px,3.4vw,22px);line-height:1.85;color:#293b31;white-space:pre-line;padding:12px 0}
+.reading-entry{background:#eff4ef;border:1px solid #dce9db;border-radius:18px;padding:23px;margin:26px 0}
+.reading-entry h2{margin:9px 0 10px;font-size:24px;letter-spacing:-.03em}
+.reading-entry p{line-height:1.65;color:#637368;font-size:14px;margin:0 0 17px}
+.reading-entry .primary{box-shadow:none}
+.reading-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.reading-choice{min-height:100px}
+.reading-choice .reading-preview{display:block;color:#718277;font-size:12px;line-height:1.5;margin-top:8px}
+.reading-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:15px 0}
+.reading-metrics>div{border:1px solid #e1e7df;background:#f6f9f5;padding:15px;border-radius:13px}
+.reading-metrics b{font-size:25px;letter-spacing:-.04em;display:block}
+.reading-metrics span{color:#697b6e;font-size:12px;line-height:1.4;display:block;margin-top:5px}
+.reading-result{border-top:1px solid #e5ebe5;padding-top:16px;margin-top:19px}
+.reading-result h3{font-size:18px;margin:7px 0 10px}
+.reading-result li{line-height:1.6;color:#415448;margin:5px 0}
+@media(max-width:540px){.reading-choices{grid-template-columns:1fr}.reading-metrics>div{padding:10px}.reading-metrics b{font-size:21px}}
 .recording-indicator{color:#a53c30;font-weight:750}
 @media(max-width:540px){.voice-controls button{flex:1;min-width:125px}.voice-box{padding:13px}}
 .end{text-align:center;padding:20px 0}.end h1{font-size:39px}
@@ -68,6 +83,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 </main>
 <div id="notice" role="status"></div>
 <script src="./voice.js"></script>
+<script src="./reading.js"></script>
 <script>
 (function(){
 "use strict";
@@ -196,7 +212,7 @@ const safe=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"
 let data={version:1,history:[],sequence:0};
 try{const d=JSON.parse(localStorage.getItem(KEY)||"null");if(d&&Array.isArray(d.history)){data=d;data.sequence=Number(data.sequence)||0;}}catch(e){}
 const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}};
-let selectedMode="mix",session=null,current=null,lastKeys=[],page="home";
+let selectedMode="mix",session=null,current=null,lastKeys=[],page="home",readingSession=null;
 const labelMode={mix:"Смешанная тренировка",quiz:"Выбери термин",fill:"Вставь слово",card:"Карточка",phrase:"Точная формулировка",logic:"Структура доклада",contrast:"Различай понятия",read:"Чтение вслух",dictate:"Голосовые ответы"};
 const dayNumber=day=>Math.floor(Date.parse(day+"T00:00:00Z")/86400000);
 function learningState(id){
@@ -303,9 +319,9 @@ function renderHome(){
  modeButton("quiz","Выбрать термин","Четыре близких варианта")+
  modeButton("phrase","Сказать профессионально","Коротко сформулировать мысль")+
  modeButton("card","Карточки","Вспомнить определение")+
- modeButton("read","Чтение вслух","Прочитай, запиши и послушай")+
  modeButton("dictate","Голосовой ответ","Надиктуй термин или формулировку")+
  '</div>'+
+ '<section class="reading-entry"><div class="eyebrow">Отдельная тренировка</div><h2>Чтение вслух и разбор речи</h2><p>Прочитай профессиональный доклад, запиши голос и прослушай себя. При поддержке браузера сравним распознанные слова с текстом и определим приблизительный темп чтения.</p><button class="primary" data-action="reading-home">Перейти к чтению</button></section>'+
  (s.weak.length?'<div class="section-title">Стоит повторить</div><div class="weak">'+s.weak.slice(0,5).map(x=>'<span class="pill">'+safe(x.term)+'</span>').join("")+'</div>':"")+
  '<div class="actions">'+(s.weak.length?'<button class="secondary" data-action="review">Повторить сложное · 20 заданий</button>':'')+'<button class="secondary" data-action="report">Журнал и анализ ответов</button></div>'+
  '<p class="mini">На повторение сегодня: '+due+' терминов · закреплено в разные дни: '+mastered+'.</p>'+
@@ -318,7 +334,7 @@ function modeOfNext(){
  if(session?.reviewOnly)return ["fill","contrast","fill","card","fill","quiz","phrase","fill","contrast","fill"][session.n%10];
  if(selectedMode==="dictate")return session.n%2===0?"phrase":"fill";
  if(selectedMode!=="mix")return selectedMode;
- return ["fill","contrast","phrase","fill","quiz","phrase","fill","phrase","contrast","fill","phrase","read","fill","phrase","logic","fill","phrase","read","fill","phrase"][session.n%20];
+ return ["fill","contrast","phrase","fill","quiz","phrase","fill","phrase","contrast","fill","phrase","card","fill","phrase","logic","fill","phrase","quiz","fill","phrase"][session.n%20];
 }
 function scoreFor(id,type){
  const h=historyOf(id).filter(x=>!legacyExcluded(x)&&!isIncomplete(x)),objective=h.filter(isGraded),bad=objective.filter(x=>!reviewedOk(x)).length,good=objective.filter(reviewedOk).length,last=objective.length?objective[objective.length-1]:null;
