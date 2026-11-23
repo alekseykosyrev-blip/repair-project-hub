@@ -65,6 +65,11 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #8ac5
 .theme-sunset{background:#fff8f0;color:#503d30}.theme-sunset .hero{background:linear-gradient(128deg,#ffe0cc,#fceac0 70%,#f5e3ed)}
 .theme-sunset .primary{background:#ad613c;border-color:#ad613c}.theme-sunset .progress>div{background:linear-gradient(90deg,#efb17c,#ad613c)}
 @media(max-width:650px){.shop-grid{grid-template-columns:1fr}.wallet{font-size:12px;padding:7px 10px}.back{display:none}}
+.speech-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}
+.speech-grid button{text-align:left}.speech-draft{font-size:16px;line-height:1.6;resize:vertical;min-height:110px}
+.speech-example{background:#eff6f0;border:1px solid #c9dfcc;border-radius:15px;padding:16px;margin-top:16px}
+.speech-example p{margin:8px 0}.speech-example .actions{margin-top:12px}
+@media(max-width:600px){.speech-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -169,6 +174,42 @@ const SHOP=[["blue","🌊 Синяя тема","Оформление в спок
 function shopHTML(){return '<section class="shop"><h2>🛍 Магазин достижений</h2><p>За правильные ответы получай монеты и выбирай награды. Покупки не влияют на оценки и открытие уровней.</p><div class="shop-grid">'+SHOP.map(x=>{const owned=state.purchases.includes(x[0]);return '<div class="shop-item"><b>'+x[1]+'</b><small>'+x[2]+'</small><button class="secondary" data-buy="'+x[0]+'" '+(owned&&x[0]==="badge"?'disabled':'')+'>'+(owned?(x[0]==="badge"?"Получено ✓":state.theme===x[0]?"Активно ✓":"Применить"):"🪙 "+x[3])+'</button></div>'}).join("")+'</div>'+(state.purchases.includes("badge")?'<p>🏅 Твой значок: «Старательный»</p>':'')+(message?'<div class="feedback">'+esc(message)+'</div>':'')+'</section>'}
 syncWallet();
 
+
+// Самостоятельная речевая лаборатория: не влияет на открытие уровней и не выдаёт самооценку за проверку.
+const SPEECH=[[["Фраза","На стене после окраски заметили пятно.","Скажи одним предложением, что обнаружено и что нужно проверить.","На стене обнаружено пятно. Нужно проверить причину.","факт · действие"],["Сообщение","Бригада закончила подготовку одной комнаты.","Напиши короткое сообщение мастеру: что сделано и что дальше.","Подготовка комнаты завершена. Прошу проверить поверхность перед окраской.","результат · следующий шаг"],["Диалог","Заказчик спрашивает, когда исправят дефект.","Ответь спокойно, не придумывая точный срок.","Замечание зафиксировали. Уточню срок исправления и сообщу после согласования.","подтверждение · обязательство"]],[["Сообщение","Электрики ещё не освободили помещение, маляры ждут.","Составь сообщение прорабу: препятствие и нужное решение.","Фронт работ для маляров не готов из-за электромонтажа. Прошу уточнить время передачи помещения.","препятствие · запрос"],["Диалог","Мастер говорит: «Почему не начали красить?»","Объясни причину без обвинений и предложи действие.","Окраску не начали, поскольку помещение ещё занято смежной бригадой. Уточним время освобождения.","причина · следующий шаг"],["Чтение","Перед началом окраски проверяем готовность участка. Смежные работы должны быть завершены. Затем проводим контроль качества подготовки.","Прочитай текст, делая паузу после каждой законченной мысли.","Перед началом окраски проверяем готовность участка. Смежные работы должны быть завершены. Затем проводим контроль качества подготовки.","смысловые паузы"]],[["Мини-ситуация","Поставка шпаклёвки задержана на два дня, часть бригады простаивает.","Кратко доложи: факт, риск, вариант действия.","Поставка задержана на два дня. Есть риск простоя бригады. Предлагаю уточнить поставку и перераспределить работы.","факт · риск · действие"],["Сообщение","После повторной проверки часть замечаний осталась.","Напиши сообщение без расплывчатого «почти всё готово».","При повторной проверке часть замечаний не устранена. Уточняем объём исправлений и срок следующей проверки.","статус · следующий шаг"],["Диалог","Подрядчик предлагает продолжать работу без необходимых материалов.","Откажись от необоснованного обещания и предложи план.","Без материалов продолжить этот этап нельзя. Уточним дату поставки и определим доступные задачи.","ограничение · альтернатива"]],[["Доклад","Три помещения готовы, в четвёртом остались замечания к окраске.","Сделай доклад из трёх частей: статус, проблема, поручение.","Три помещения готовы к приёмке. В четвёртом выявлены замечания к окраске. Назначим ответственного и срок исправления.","статус · проблема · поручение"],["Диалог","Заказчик требует изменить сроки, но решение зависит от смежников.","Ответь уверенно: что известно, что требуется согласовать.","Изменение срока зависит от завершения смежных работ. Сначала уточним график и согласуем обновлённую дату.","зависимость · согласование"],["Сообщение","После совещания договорились о проверке двух участков.","Составь запись для протокола с ответственным и контрольной точкой без вымышленных имён и дат.","По двум участкам требуется проверка. Ответственного и контрольную дату зафиксируем после подтверждения.","решение · ответственность · контроль"]],[["Доклад","Задержка отделки может повлиять на дату сдачи объекта.","Сформулируй руководству риск, его влияние и решение без категоричных обещаний.","Задержка отделки может затронуть критический путь. Проверим зависимости и подготовим варианты корректировки графика.","риск · влияние · решение"],["Переговоры","Заказчик просит выполнить дополнительные работы в исходный бюджет.","Объясни необходимость оценки объёма и согласования стоимости.","Дополнительный объём требует отдельной оценки. Подготовим расчёт и согласуем стоимость до начала работ.","объём · расчёт · согласование"],["Доклад","Платёж по выполненным работам задержан, а закупки продолжаются.","Сделай краткий финансовый доклад без неподтверждённых цифр.","Поступление оплаты задерживается. Нужно проверить денежный поток, ближайшие платежи и риск кассового разрыва.","факт · финансовый риск · действие"]]];
+let speech=null;
+function speechHistory(){if(!Array.isArray(state.speechHistory))state.speechHistory=[];return state.speechHistory}
+function openSpeech(level,task){
+ if(!unlocked(level))return;
+ window.TrainerVoice.reset();review=null;chosen=null;message="";readAnalysis=null;transcript="";
+ speech={level,task,checked:false};renderSpeech();
+}
+function speechTask(){return SPEECH[speech.level][speech.task]}
+function renderSpeech(){
+ if(!speech)return;
+ const t=speechTask(),saved=state.speechDrafts?.[speech.level+":"+speech.task]||"",v=window.TrainerVoice.state();
+ app.innerHTML='<div class="breadcrumb"><span>Речевая лаборатория · '+esc(levels[speech.level].name)+'</span><span>Задание '+(speech.task+1)+' из '+SPEECH[speech.level].length+'</span></div>'+
+ '<div class="panel"><div class="eyebrow">'+esc(t[0])+' · без готового ответа</div><h2>🎙️ '+esc(t[1])+'</h2><p class="definition">'+esc(t[2])+'</p>'+
+ '<p class="mini">Сначала сформулируй мысль сам. Можно написать ответ или записать голос. Запись и распознавание зависят от браузера.</p>'+
+ '<textarea id="speech-draft" class="field speech-draft" rows="4" placeholder="Сформулируй ответ своими словами…">'+esc(saved)+'</textarea>'+
+ '<div class="audio">'+window.TrainerVoice.box({record:true,dictate:false})+'</div>'+
+ '<div class="actions"><button class="primary" data-act="speech-check">Показать ориентир</button><button class="secondary" data-act="speech-next">Другое задание →</button></div>'+
+ (speech.checked?'<div class="speech-example"><b>Пример формулировки, не единственно верный ответ:</b><p>'+esc(t[3])+'</p><p class="mini">Структура: '+esc(t[4])+'. Сравни свою мысль с примером. Это самостоятельная проверка, не автоматическая оценка качества речи.</p><div class="actions"><button class="secondary" data-act="speech-save">Сохранить попытку</button></div></div>':'')+
+ (message?'<div class="feedback">'+esc(message)+'</div>':'')+'</div><div class="actions"><button class="secondary" data-act="speech-home">← К карте уровней</button></div>';
+}
+function speechSave(){
+ const t=speechTask(),key=speech.level+":"+speech.task,draft=String(document.getElementById("speech-draft")?.value||"").trim(),v=window.TrainerVoice.state();
+ if(!draft&&!v.blob&&!v.clipId){message="Напиши ответ или запиши голос перед сохранением.";renderSpeech();return}
+ state.speechDrafts??={};state.speechDrafts[key]=draft;
+ speechHistory().push({level:speech.level+1,task:speech.task+1,kind:t[0],at:new Date().toISOString(),text:draft,clipId:v.clipId||null,manualReview:true});
+ save();message="Попытка сохранена в истории этого браузера. Оценка качества автоматически не выставляется.";renderSpeech();
+}
+function speechHome(){
+ const n=speechHistory().length;
+ return '<section class="panel" style="margin-top:18px"><div class="eyebrow">Новый режим · свободная речь</div><h2>🎙️ Речевая лаборатория</h2><p class="mini">Короткие фразы, сообщения, диалоги, мини-ситуации и доклады. Сначала свой ответ — затем пример. Сохранено попыток: '+n+'.</p>'+
+ '<div class="speech-grid">'+levels.map((l,i)=>'<button class="secondary" data-speech-level="'+i+'" '+(!unlocked(i)?'disabled':'')+'>'+esc(l.emoji+" "+l.name)+' · 3 задания'+(!unlocked(i)?' 🔒':'')+'</button>').join("")+'</div></section>';
+}
+
 const SPACING=[1,3,7,14,30];
 function wordDB(){if(!state.wordDB)state.wordDB={};return state.wordDB}
 function trackWord(i,j,success){
@@ -233,7 +274,7 @@ function viewHome(){
  app.innerHTML='<section class="hero"><div class="eyebrow">Учимся от простого к сложному</div><div class="illustration" aria-hidden="true">📚✨</div><h1>Сначала слово.<br>Потом речь.</h1><p class="lead">Изучаем несколько слов вместе, затем тренируем их вперемешку: смысл, рабочие ситуации, исправление ошибок и самостоятельное вспоминание. Ответ не следует сразу за подсказкой.</p><div class="hero-foot"><span class="chip">5 уровней</span><span class="chip">42 шага на уровень</span><span class="chip">Разные типы вопросов</span></div></section>'+
  '<div class="section-title">Твой путь · '+done+' из 5 уровней</div><div class="progress"><div style="width:'+Math.min(100,Math.round(totalProgress/210*100))+'%"></div></div>'+
  '<section class="path">'+levels.map((l,i)=>'<button class="level" data-level="'+i+'" '+(!unlocked(i)?'disabled aria-label="Уровень пока закрыт"':'')+'><span class="emoji" aria-hidden="true">'+l.emoji+'</span><span><b>'+(i+1)+'. '+esc(l.name)+'</b><small>'+esc(l.desc)+'</small></span><span class="status">'+(state.done[i]?'✓ Пройден':!unlocked(i)?'🔒 Закрыт':completedSteps(i)?'Продолжить':'Начать')+'</span></button>').join("")+'</section>'+
- '<p class="hint">В каждом уровне 10 слов в трёх наборах, 30 смешанных вопросов, короткое предложение и чтение. Старый прогресс и журнал сохранены; незавершённый урок по новой методике начинается с первого набора.</p>'+reviewSummary()+shopHTML()+
+ '<p class="hint">В каждом уровне 10 слов в трёх наборах, 30 смешанных вопросов, короткое предложение и чтение. Старый прогресс и журнал сохранены; незавершённый урок по новой методике начинается с первого набора.</p>'+reviewSummary()+speechHome()+shopHTML()+
  '<div class="actions"><button class="secondary" data-act="restart">Начать курс сначала</button><a class="secondary" href="./index.html" style="text-decoration:none">Старый тренажёр</a></div>';
 }
 function openLevel(i){
@@ -333,6 +374,18 @@ function finish(){
 }
 app.addEventListener("click",e=>{
  const target=e.target.closest("button");if(!target)return;
+ if(target.hasAttribute("data-speech-level")){openSpeech(Number(target.dataset.speechLevel),0);return}
+ if(speech){
+  const act=target.dataset.act||target.dataset.action||"";
+  if(act==="speech-home"){speech=null;window.TrainerVoice.reset();viewHome();return}
+  if(act==="speech-check"){speech.checked=true;renderSpeech();return}
+  if(act==="speech-save"){speechSave();return}
+  if(act==="speech-next"){openSpeech(speech.level,(speech.task+1)%SPEECH[speech.level].length);return}
+  if(act==="voice-record"){window.TrainerVoice.record(()=>renderSpeech(),null,s=>{transcript=s});return}
+  if(act==="voice-stop"){window.TrainerVoice.stop(()=>renderSpeech());return}
+  if(act==="voice-download"){window.TrainerVoice.download();return}
+  return
+ }
  if(target.dataset.act==="review-start"){startReview();return}
  if(review){
   if(target.dataset.act==="home"){viewHome();return}
@@ -389,6 +442,11 @@ app.addEventListener("click",e=>{
   const v=window.TrainerVoice.state();readAnalysis=window.TrainerReading.analyze(levels[chosen].read,v.transcript||transcript,v.durationMs);viewLesson();return
  }
  if(act==="finish"){finish();return}
+});
+app.addEventListener("input",e=>{
+ if(speech&&e.target.id==="speech-draft"){
+  state.speechDrafts??={};state.speechDrafts[speech.level+":"+speech.task]=e.target.value;save()
+ }
 });
 app.addEventListener("keydown",e=>{
  if(e.key==="Enter"&&e.target.id==="recall"){e.preventDefault();app.querySelector('[data-act="recall"]')?.click()}
