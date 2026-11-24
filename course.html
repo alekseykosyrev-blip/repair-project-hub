@@ -172,7 +172,7 @@ function reward(key,value){if(state.rewarded.includes(key))return;state.rewarded
 function moscowDay(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Moscow",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date())}
 function dailyMission(){state.missions??={};const m=state.missions[moscowDay()];return m&&Array.isArray(m.recalls)?m:{recalls:[],bonus:false}}
 function creditRecall(i,j){const day=moscowDay();state.missions??={};let m=state.missions[day];if(!m||!Array.isArray(m.recalls))m=state.missions[day]={recalls:[],bonus:false};const key=i+":"+j;if(m.recalls.includes(key))return;m.recalls.push(key);if(m.recalls.length>=3&&!m.bonus){m.bonus=true;reward("mission:"+day,8)}save()}
-function missionHTML(){const m=dailyMission(),count=Math.min(3,m.recalls.length),all=reviewQueue(),mastered=all.filter(x=>x.streak>=3).length,studied=all.length;
+function missionHTML(){const m=dailyMission(),count=Math.min(3,m.recalls.length),all=reviewQueue(),mastered=all.filter(x=>(x.recallDays||0)>=3).length,studied=all.length;
 const achievements=[["🌱","Первые шаги",studied>=3,studied+" из 3 изученных слов"],["🧠","Память работает",mastered>=5,mastered+" из 5 уверенных слов"],["🎓","Первый уровень",!!state.done[0],state.done[0]?"Завершён":"Заверши уровень 1"]];
 return '<section class="mission" aria-label="Цель дня и достижения"><h2>🎯 Цель дня</h2><p>Вспомни без вариантов три разных слова с первой попытки. Награда +8 монет начисляется один раз за московский день. Повторение с письменным ответом тоже считается.</p><div class="mission-track" role="progressbar" aria-label="Вспомнено слов" aria-valuemin="0" aria-valuemax="3" aria-valuenow="'+count+'"><div style="width:'+(count/3*100)+'%"></div></div><div class="mission-meta"><span>'+count+' / 3 слова</span><span>'+(m.bonus?"✓ +8 монет получено":"До награды: "+(3-count))+'</span></div><h2 style="margin-top:20px">🏅 Достижения</h2><div class="achievement-grid">'+achievements.map(a=>'<div class="achievement'+(a[2]?"":" locked")+'"><b>'+a[0]+' '+a[1]+'</b><small>'+(a[2]?"Открыто ✓ · ":"В процессе · ")+a[3]+'</small></div>').join("")+'</div></section>'}
 function spend(amount){if(state.coins<amount){message="Недостаточно монет. Зарабатывай их правильными ответами.";return false}state.coins-=amount;save();syncWallet();return true}
@@ -216,12 +216,18 @@ function speechHome(){
  '<div class="speech-grid">'+levels.map((l,i)=>'<button class="secondary" data-speech-level="'+i+'" '+(!unlocked(i)?'disabled':'')+'>'+esc(l.emoji+" "+l.name)+' · 3 задания'+(!unlocked(i)?' 🔒':'')+'</button>').join("")+'</div></section>';
 }
 
-const SPACING=[1,3,7,14,30];
+const SPACING=[1,3,7,14,30], DAY=86400000;
 function wordDB(){if(!state.wordDB)state.wordDB={};return state.wordDB}
-function trackWord(i,j,success){
+function trackWord(i,j,success,kind="legacy",source="lesson"){
  const key=i+":"+j,db=wordDB(),old=db[key]||{tries:0,streak:0,errors:0};
- const streak=success?old.streak+1:0;
- db[key]={tries:old.tries+1,streak,errors:old.errors+(success?0:1),due:success?Date.now()+SPACING[Math.min(streak-1,4)]*86400000:Date.now()};
+ const modes={...old.modes},m=modes[kind]||{tries:0,errors:0};
+ modes[kind]={tries:m.tries+1,errors:m.errors+(success?0:1)};
+ const independent=kind==="recall"||kind==="context-recall"||kind==="fill";
+ const now=Date.now(),day=moscowDay(),prior=old.recallDays||0;
+ const recallDays=!success?0:independent&&old.lastRecallDay!==day?prior+1:prior;
+ const streak=success?(old.streak||0)+1:0;
+ const due=!success?now:independent?now+SPACING[Math.min(Math.max(recallDays-1,0),4)]*DAY:Math.min(old.due??now,now);
+ db[key]={...old,tries:(old.tries||0)+1,streak,errors:(old.errors||0)+(success?0:1),due,modes,recallDays,lastRecallDay:success&&independent?day:old.lastRecallDay,lastKind:kind,lastSource:source};
  save();
 }
 function reviewQueue(){
@@ -229,20 +235,23 @@ function reviewQueue(){
  for(let i=0;i<levels.length;i++)for(let j=0;j<levels[i].terms.length;j++){const v=db[i+":"+j];if(v?.tries)items.push({i,j,...v})}
  return items;
 }
+function dueWords(){return reviewQueue().filter(x=>x.due<=Date.now()).sort((a,b)=>(b.errors||0)-(a.errors||0)||a.due-b.due)}
 function reviewSummary(){
- const all=reviewQueue(),due=all.filter(x=>x.due<=Date.now()),strong=all.filter(x=>x.streak>=3);
- return '<section class="panel" style="margin-top:18px"><div class="eyebrow">Персональное закрепление</div><h2>🧠 Повторение слов</h2><p class="mini">Повторяй слова через 1, 3, 7, 14 и 30 дней. Ошибки возвращаются сразу. Ответы чередуются: самостоятельно вспомни слово или выбери по смыслу.</p><div class="hero-foot"><span class="chip">Изучалось: '+all.length+'/50</span><span class="chip">Повторить: '+due.length+'</span><span class="chip">Уверенно: '+strong.length+'</span></div><p class="mini">'+(due.length?'К повторению: '+due.slice(0,5).map(x=>esc(levels[x.i].terms[x.j][0])).join(' · '):'Сейчас повторений нет.')+'</p><div class="actions"><button class="primary" data-act="review-start" '+(!due.length?'disabled':'')+'>Повторить '+Math.min(due.length,8)+' слов</button></div></section>';
+ const all=reviewQueue(),due=dueWords(),strong=all.filter(x=>(x.recallDays||0)>=3),future=all.filter(x=>x.due>Date.now()).sort((a,b)=>a.due-b.due);
+ const rows=all.map(x=>'<li>'+esc(levels[x.i].terms[x.j][0])+' — '+(x.due<=Date.now()?'повторить':(x.recallDays||0)>=3?'вспомнено в разные дни':'закрепляется')+' · самостоятельных дней: '+(x.recallDays||0)+' · ошибок: '+(x.errors||0)+'</li>').join("");
+ return '<section class="panel" style="margin-top:18px"><div class="eyebrow">Персональное закрепление</div><h2>🧠 Моя память</h2><p class="mini">Интервалы 1, 3, 7, 14 и 30 дней растут только за самостоятельное вспоминание в разные дни. Выбор ответа не заменяет память.</p><div class="hero-foot"><span class="chip">Тренировалось: '+all.length+'/50</span><span class="chip">Повторить: '+due.length+'</span><span class="chip">Уверенно: '+strong.length+'</span></div><p class="mini">'+(due.length?'В первую очередь: '+due.slice(0,5).map(x=>esc(levels[x.i].terms[x.j][0])).join(' · '):future.length?'Следующее повторение: '+new Date(future[0].due).toLocaleDateString("ru-RU"):'Начни основной урок, чтобы появились слова.')+'</p><details><summary>Мой словарь и ошибки</summary><ul>'+rows+'</ul></details><div class="actions"><button class="primary" data-act="review-start" '+(!due.length?'disabled':'')+'>Повторить '+Math.min(due.length,8)+' слов</button></div></section>';
 }
 let review=null;
-function startReview(){const q=reviewQueue().filter(x=>x.due<=Date.now()).sort((a,b)=>a.due-b.due).slice(0,8);if(!q.length){viewHome();return}review={q,n:0,errors:0};chosen=null;message="";window.TrainerVoice.reset();renderReview()}
+function reviewKind(x){const t=levels[x.i].terms[x.j][0];if(CONTEXTS[t]&&x.lastKind!=="context-recall")return "context-recall";if(VARIETY[t]&&x.lastKind!=="fill")return "fill";return "recall"}
+function startReview(){const q=dueWords().slice(0,8).map(x=>({...x,kind:reviewKind(x)}));if(!q.length){viewHome();return}review={q,n:0,errors:0,clean:0,assisted:0};chosen=null;message="";window.TrainerVoice.reset();renderReview()}
 function renderReview(){
  const r=review;if(!r){viewHome();return}
- const x=r.q[r.n];if(!x){review=null;viewHome();return}
- const term=levels[x.i].terms[x.j],typed=r.n%2===0;
- const choices=[term[0],...levels[x.i].terms.filter((t,j)=>j!==x.j).slice(0,3).map(t=>t[0])].sort((a,b)=>a.localeCompare(b));
- app.innerHTML='<div class="breadcrumb"><span>Повторение без подсказки</span><span>'+(r.n+1)+' из '+r.q.length+'</span></div><div class="panel"><div class="lesson-hero">🔁</div><div class="eyebrow">'+(typed?'Вспомни термин':'Выбери термин')+'</div><p class="definition">'+esc(term[1])+'</p>'+(typed?'<input class="field" id="review-input" placeholder="Напиши термин"><div class="actions"><button class="primary" data-act="review-check">Проверить</button><button class="secondary" data-act="review-show">Показать ответ</button></div>':choices.map(t=>'<button class="choice" data-review-choice="'+(t===term[0]?'yes':'no')+'">'+esc(t)+'</button>').join(''))+(message?'<div class="feedback">'+esc(message)+'</div>':'')+'</div><div class="actions"><button class="secondary" data-act="home">← Закончить</button></div>';
+ const x=r.q[r.n];if(!x){const clean=r.clean,assisted=r.assisted;review=null;app.innerHTML='<div class="panel"><h2>Повторение завершено</h2><p>Самостоятельно: '+clean+' · Требуют повторения: '+assisted+'</p><p class="mini">Ошибки не блокируют основной курс.</p><button class="primary" data-act="home">К карте уровней</button></div>';return}
+ const term=levels[x.i].terms[x.j],v=VARIETY[term[0]],question=x.kind==="fill"?v[0]:x.kind==="context-recall"?CONTEXTS[term[0]]:term[1];
+ app.innerHTML='<div class="breadcrumb"><span>Повторение без вариантов</span><span>'+(r.n+1)+' из '+r.q.length+'</span></div><div class="panel"><div class="lesson-hero">🔁</div><div class="eyebrow">'+(x.kind==="fill"?'Заполни пропуск':x.kind==="context-recall"?'Термин в ситуации':'Вспомни термин')+'</div><p class="definition">'+esc(question)+'</p><input class="field" id="review-input" autocomplete="off" placeholder="Напиши ответ"><div class="actions"><button class="primary" data-act="review-check">Проверить</button><button class="secondary" data-act="review-show">Не помню — показать</button>'+(r.errors?'<button class="secondary" data-act="review-skip">Дальше →</button>':'')+'</div>'+(message?'<div class="feedback">'+esc(message)+'</div>':'')+'</div><div class="actions"><button class="secondary" data-act="home">← Закончить</button></div>';
 }
-function advanceReview(success){const r=review,x=r.q[r.n],clean=success&&!r.errors;if(clean&&r.n%2===0){creditRecall(x.i,x.j);reward("review-typed:"+moscowDay()+":"+x.i+":"+x.j,1)}trackWord(x.i,x.j,clean);r.n++;r.errors=0;message="";renderReview()}
+function reviewAnswer(x){const t=levels[x.i].terms[x.j][0];return x.kind==="fill"?VARIETY[t][1]:t}
+function advanceReview(success){const r=review,x=r.q[r.n],clean=success&&!r.errors;if(clean){r.clean++;creditRecall(x.i,x.j);reward("review-typed:"+moscowDay()+":"+x.i+":"+x.j,1)}else r.assisted++;trackWord(x.i,x.j,clean,x.kind,"review");r.n++;r.errors=0;message="";renderReview()}
 const CONTEXTS={"Дефект":"На новой окраске обнаружили пузырь и пятно. Как называется такой недостаток?","Срок":"Мастер спрашивает, к какому дню закончат исправление. Что нужно уточнить?","Этап":"Сначала подготовка, потом окраска. Как называется одна такая часть большой работы?","Результат":"Поверхность покрасили, теперь проверяют, что получилось. Как называется итог работы?","Замечание":"На осмотре указали на неровность стены. Как назвать это указание?","Проверка":"Мастер осматривает стену после исправления. Как называется такое действие?","Объём":"Нужно узнать, сколько квадратных метров стены окрашено. Что измеряют?","Причина":"Трещина появилась снова. Нужно выяснить, из-за чего. Что ищем?","Исправление":"Мастер устранил царапину и снова покрасил участок. Что он выполнил?","Задача":"Работнику поручили к вечеру завершить окраску двери. Что ему поставили?","Фронт работ":"Маляры ждут, пока электрики освободят помещение. Что ещё не подготовлено?","Смежные работы":"Штукатуры ждут окончания сантехнического монтажа. Как называются связанные работы других бригад?","Приёмка":"Результат проверяют перед передачей заказчику. Как называется эта процедура?","План-факт":"За неделю планировали 200 м², а сделали 160 м². Как называется такое сравнение?","Участок":"Бригада работает только в одной части здания. Как назвать эту часть объекта?","Подрядчик":"Организация выполняет отделку по договору. Как назвать её роль?","Готовность":"Нужно понять, можно ли уже предъявить помещение для проверки. Что оцениваем?","Отклонение":"Обещали закончить в понедельник, сделали в среду. Как называется разница с планом?","Контроль качества":"Проверяем, соответствует ли подготовка стен требованиям. Как называется такая проверка?","Ответственность":"Нужно определить, кто отвечает за результат работы. Что закрепляем?"};
 const PRACTICE_VER=2;
 const VARIETY=Object.fromEntries([["Дефект","На потолке обнаружен ___.","дефект",["Обнаружен","дефект","на потолке"],"Недостаток самой работы, а не запись о нём."],["Срок","Нужно уточнить ___ сдачи.","срок",["Уточним","срок","сдачи"],"Дата окончания, а не часть работы."],["Этап","Первый ___ отделки завершён.","этап",["Завершён","первый","этап"],"Часть процесса, а не дата окончания."],["Результат","Оценим ___ окраски.","результат",["Оценим","результат","окраски"],"Полученный итог, а не действие по его оценке."],["Замечание","Мастер записал ___ по окраске.","замечание",["Зафиксируем","замечание","мастера"],"Указание на недостаток, а не сам итог работы."],["Проверка","После ремонта нужна ___.","проверка",["Назначим","повторную","проверку"],"Действие по оценке соответствия требованиям."],["Объём","Уточним ___ отделки в квадратных метрах.","объём",["Уточним","объём","отделки"],"Количество работы, а не объяснение проблемы."],["Причина","Нужно установить ___ задержки.","причину",["Установим","причину","задержки"],"То, из-за чего возникла проблема."],["Исправление","___ недостатка займёт день.","исправление",["Начнём","исправление","недостатка"],"Устранение недостатка, а не выяснение его происхождения."],["Задача","___ мастера — проверить стены.","задача",["Уточним","задачу","мастера"],"Порученный результат или действие."],["Фронт работ","Для маляров подготовлен ___.","фронт работ",["Подготовим","фронт работ","для маляров"],"Место и условия для начала конкретной работы."],["Смежные работы","Перед окраской завершены ___.","смежные работы",["Завершены","смежные работы","в помещении"],"Связанные работы других исполнителей."],["Приёмка","После завершения отделки назначена ___.","приёмка",["Назначим","приёмку","отделки"],"Проверка перед официальным принятием результата."],["План-факт","На совещании сверим ___ за неделю.","план-факт",["Сверим","план-факт","за неделю"],"Сопоставление запланированного и выполненного."],["Участок","Мастер осмотрел ___ фасада.","участок",["Осмотрим","участок","фасада"],"Часть объекта, а не исполнитель договора."],["Подрядчик","___ выполнил отделку по договору.","подрядчик",["Подрядчик","завершил","отделку"],"Исполнитель работ по договору."],["Готовность","Оценим ___ помещения к окраске.","готовность",["Оценим","готовность","помещения"],"Состояние перед следующим этапом, а не разница с планом."],["Отклонение","Зафиксировано ___ от графика.","отклонение",["Зафиксируем","отклонение","от графика"],"Разница между планом и фактом."],["Контроль качества","После подготовки проведём ___.","контроль качества",["Проведём","контроль качества","подготовки"],"Проверка соответствия требованиям."],["Ответственность","За мастером закреплена ___ за результат.","ответственность",["Закрепим","ответственность","за результат"],"Обязанность отвечать за результат."]].map(x=>[x[0],x.slice(1)]));
@@ -324,7 +333,7 @@ function nextStudy(){
 function nextPractice(successFirstTry){
  const l=levelState(chosen),task=deck(chosen,l.group)[l.cursor];
  if(successFirstTry){reward("v2:l"+chosen+":g"+l.group+":task"+l.cursor,task.kind==="recall"?3:2);if(task.kind==="recall")creditRecall(chosen,task.idx)}
- trackWord(chosen,task.idx,!!successFirstTry);
+ trackWord(chosen,task.idx,!!successFirstTry,task.kind,"lesson");
  l.cursor++;l.errors=0;message="";phraseOrder=[];
  if(l.cursor>=deck(chosen,l.group).length){
   l.group++;l.studied=0;l.cursor=0;
@@ -417,8 +426,9 @@ app.addEventListener("click",e=>{
  if(target.dataset.act==="review-start"){startReview();return}
  if(review){
   if(target.dataset.act==="home"){viewHome();return}
-  if(target.dataset.act==="review-show"){const x=review.q[review.n];review.errors++;message="Ответ: "+levels[x.i].terms[x.j][0]+". Слово вернётся на повторение.";renderReview();return}
-  if(target.dataset.act==="review-check"){const x=review.q[review.n],answer=levels[x.i].terms[x.j][0];if(norm(document.getElementById("review-input")?.value)===norm(answer))advanceReview(true);else{review.errors++;message="Пока неверно. Попробуй ещё раз или открой ответ.";renderReview()}return}
+  if(target.dataset.act==="review-show"){const x=review.q[review.n];review.errors++;message="Ответ: "+reviewAnswer(x)+". Слово вернётся на повторение.";renderReview();return}
+  if(target.dataset.act==="review-skip"){advanceReview(false);return}
+  if(target.dataset.act==="review-check"){const x=review.q[review.n],answer=reviewAnswer(x);if(norm(document.getElementById("review-input")?.value)===norm(answer))advanceReview(true);else{review.errors++;message="Пока неверно. Попробуй ещё раз или открой ответ.";renderReview()}return}
   if(target.hasAttribute("data-review-choice")){if(target.dataset.reviewChoice==="yes")advanceReview(true);else{review.errors++;message="Пока неверно. Попробуй другой вариант.";renderReview()}return}
  }
  if(target.hasAttribute("data-buy")){
@@ -489,6 +499,7 @@ app.addEventListener("input",e=>{
 });
 app.addEventListener("keydown",e=>{
  if(e.key==="Enter"&&e.target.id==="recall"){e.preventDefault();(app.querySelector('[data-act="recall"]')||app.querySelector('[data-act="fill-check"]'))?.click()}
+ if(e.key==="Enter"&&e.target.id==="review-input"){e.preventDefault();app.querySelector('[data-act="review-check"]')?.click()}
  if(e.key==="Enter"&&e.target.id==="sentence"){e.preventDefault();app.querySelector('[data-act="sentence"]')?.click()}
 });
 viewHome();
