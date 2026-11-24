@@ -245,6 +245,27 @@ function renderReview(){
 function advanceReview(success){const r=review,x=r.q[r.n],clean=success&&!r.errors;if(clean&&r.n%2===0){creditRecall(x.i,x.j);reward("review-typed:"+moscowDay()+":"+x.i+":"+x.j,1)}trackWord(x.i,x.j,clean);r.n++;r.errors=0;message="";renderReview()}
 const CONTEXTS={"Дефект":"На новой окраске обнаружили пузырь и пятно. Как называется такой недостаток?","Срок":"Мастер спрашивает, к какому дню закончат исправление. Что нужно уточнить?","Этап":"Сначала подготовка, потом окраска. Как называется одна такая часть большой работы?","Результат":"Поверхность покрасили, теперь проверяют, что получилось. Как называется итог работы?","Замечание":"На осмотре указали на неровность стены. Как назвать это указание?","Проверка":"Мастер осматривает стену после исправления. Как называется такое действие?","Объём":"Нужно узнать, сколько квадратных метров стены окрашено. Что измеряют?","Причина":"Трещина появилась снова. Нужно выяснить, из-за чего. Что ищем?","Исправление":"Мастер устранил царапину и снова покрасил участок. Что он выполнил?","Задача":"Работнику поручили к вечеру завершить окраску двери. Что ему поставили?","Фронт работ":"Маляры ждут, пока электрики освободят помещение. Что ещё не подготовлено?","Смежные работы":"Штукатуры ждут окончания сантехнического монтажа. Как называются связанные работы других бригад?","Приёмка":"Результат проверяют перед передачей заказчику. Как называется эта процедура?","План-факт":"За неделю планировали 200 м², а сделали 160 м². Как называется такое сравнение?","Участок":"Бригада работает только в одной части здания. Как назвать эту часть объекта?","Подрядчик":"Организация выполняет отделку по договору. Как назвать её роль?","Готовность":"Нужно понять, можно ли уже предъявить помещение для проверки. Что оцениваем?","Отклонение":"Обещали закончить в понедельник, сделали в среду. Как называется разница с планом?","Контроль качества":"Проверяем, соответствует ли подготовка стен требованиям. Как называется такая проверка?","Ответственность":"Нужно определить, кто отвечает за результат работы. Что закрепляем?"};
 const PRACTICE_VER=2;
+const VARIETY=Object.fromEntries([["Дефект","На потолке обнаружен ___.","дефект",["Обнаружен","дефект","на потолке"],"Недостаток самой работы, а не запись о нём."],["Срок","Нужно уточнить ___ сдачи.","срок",["Уточним","срок","сдачи"],"Дата окончания, а не часть работы."],["Этап","Первый ___ отделки завершён.","этап",["Завершён","первый","этап"],"Часть процесса, а не дата окончания."],["Результат","Оценим ___ окраски.","результат",["Оценим","результат","окраски"],"Полученный итог, а не действие по его оценке."],["Замечание","Мастер записал ___ по окраске.","замечание",["Зафиксируем","замечание","мастера"],"Указание на недостаток, а не сам итог работы."],["Проверка","После ремонта нужна ___.","проверка",["Назначим","повторную","проверку"],"Действие по оценке соответствия требованиям."],["Объём","Уточним ___ отделки в квадратных метрах.","объём",["Уточним","объём","отделки"],"Количество работы, а не объяснение проблемы."],["Причина","Нужно установить ___ задержки.","причину",["Установим","причину","задержки"],"То, из-за чего возникла проблема."],["Исправление","___ недостатка займёт день.","исправление",["Начнём","исправление","недостатка"],"Устранение недостатка, а не выяснение его происхождения."],["Задача","___ мастера — проверить стены.","задача",["Уточним","задачу","мастера"],"Порученный результат или действие."],["Фронт работ","Для маляров подготовлен ___.","фронт работ",["Подготовим","фронт работ","для маляров"],"Место и условия для начала конкретной работы."],["Смежные работы","Перед окраской завершены ___.","смежные работы",["Завершены","смежные работы","в помещении"],"Связанные работы других исполнителей."],["Приёмка","После завершения отделки назначена ___.","приёмка",["Назначим","приёмку","отделки"],"Проверка перед официальным принятием результата."],["План-факт","На совещании сверим ___ за неделю.","план-факт",["Сверим","план-факт","за неделю"],"Сопоставление запланированного и выполненного."],["Участок","Мастер осмотрел ___ фасада.","участок",["Осмотрим","участок","фасада"],"Часть объекта, а не исполнитель договора."],["Подрядчик","___ выполнил отделку по договору.","подрядчик",["Подрядчик","завершил","отделку"],"Исполнитель работ по договору."],["Готовность","Оценим ___ помещения к окраске.","готовность",["Оценим","готовность","помещения"],"Состояние перед следующим этапом, а не разница с планом."],["Отклонение","Зафиксировано ___ от графика.","отклонение",["Зафиксируем","отклонение","от графика"],"Разница между планом и фактом."],["Контроль качества","После подготовки проведём ___.","контроль качества",["Проведём","контроль качества","подготовки"],"Проверка соответствия требованиям."],["Ответственность","За мастером закреплена ___ за результат.","ответственность",["Закрепим","ответственность","за результат"],"Обязанность отвечать за результат."]].map(x=>[x[0],x.slice(1)]));
+let phraseOrder=[];
+function varietyKind(i,g,j,round){return i<2?(round===0?["contrast","match","fill","simple"][(j+g)%4]:["phrase","repair","fill","match"][(j+g)%4]):null}
+function varietyBody(task,current,l,range){
+ const b=VARIETY[current[0]];if(!b)return null;
+ const other=range.find(x=>x.idx!==task.idx).term;
+ const feedback=message?'<div class="feedback">'+esc(message)+'</div>':'';
+ const head=(title,q)=>'<div class="eyebrow">'+title+'</div><h2 class="word">'+esc(q)+'</h2>';
+ const buttons=(opts,correct)=>rotateOptions(opts,l.cursor+chosen).map((o)=>'<button class="choice" data-choice="'+(o===correct?"yes":"no")+'">'+esc(o)+'</button>').join("");
+ if(task.kind==="contrast")return head("Различай понятия",b[3])+buttons(range.map(x=>x.term[0]),current[0])+feedback;
+ if(task.kind==="match"){
+  const a=current[0]+" — "+current[1]+" / "+other[0]+" — "+other[1],wrong=current[0]+" — "+other[1]+" / "+other[0]+" — "+current[1];
+  return head("Сопоставь две пары","В каком варианте оба слова объяснены правильно?")+buttons([a,wrong],a)+feedback
+ }
+ if(task.kind==="fill")return head("Вставь слово в новую фразу",b[0])+'<p class="mini">Напиши термин в подходящей форме.</p><input class="field" id="recall" autocomplete="off" placeholder="Твой ответ"><div class="actions"><button class="primary" data-act="fill-check">Проверить</button><button class="secondary" data-act="hint">Подсказка</button></div>'+feedback;
+ if(task.kind==="phrase"){
+  const tokens=b[2],order=[2,0,1];
+  return head("Собери короткую фразу","Начни с первого слова предложения.")+'<div class="example" aria-live="polite">'+esc(phraseOrder.map(n=>tokens[n]).join(" ")||"Выбери слова ниже")+'</div><div class="actions">'+order.map(n=>'<button class="secondary" data-token="'+n+'" '+(phraseOrder.includes(n)?"disabled":"")+'>'+esc(tokens[n])+'</button>').join("")+'</div><div class="actions"><button class="primary" data-act="phrase-check" '+(phraseOrder.length!==3?"disabled":"")+'>Проверить</button><button class="secondary" data-act="phrase-reset">Очистить</button></div>'+feedback
+ }
+ return null
+}
 function unlocked(i){return i===0||!!state.done[i-1]}
 function levelState(i){
  state.learningV2??={};
@@ -263,9 +284,9 @@ function deck(i,g){
  const range=groupRange(i,g),n=range.length,arr=[];
  const kinds1=["pick","context","simple","context"],kinds2=["repair","simple","pick","repair"];
  // Two mixed rounds before active recall; no word is tested immediately after being shown.
- for(let j=0;j<n;j++)arr.push({idx:range[j].idx,kind:kinds1[(j+g)%kinds1.length]});
+ for(let j=0;j<n;j++)arr.push({idx:range[j].idx,kind:varietyKind(i,g,j,0)||kinds1[(j+g)%kinds1.length]});
  const order2=n===3?[1,2,0]:[2,0,3,1];
- for(const j of order2)arr.push({idx:range[j].idx,kind:kinds2[(j+g)%kinds2.length]});
+ for(const j of order2)arr.push({idx:range[j].idx,kind:varietyKind(i,g,j,1)||kinds2[(j+g)%kinds2.length]});
  const order3=n===3?[1,0,2]:[3,1,2,0];
  for(const j of order3)arr.push({idx:range[j].idx,kind:"recall"});
  return arr
@@ -286,7 +307,7 @@ function viewHome(){
 function openLevel(i){
  if(!unlocked(i))return;
  if(chosen!==null)window.TrainerVoice.reset();
- chosen=i;message="";transcript="";readAnalysis=null;
+ chosen=i;message="";transcript="";readAnalysis=null;phraseOrder=[];
  if(state.done[i]){
   state.learningV2[i]={group:0,studied:0,phase:"study",cursor:0,errors:0};
   save();
@@ -304,7 +325,7 @@ function nextPractice(successFirstTry){
  const l=levelState(chosen),task=deck(chosen,l.group)[l.cursor];
  if(successFirstTry){reward("v2:l"+chosen+":g"+l.group+":task"+l.cursor,task.kind==="recall"?3:2);if(task.kind==="recall")creditRecall(chosen,task.idx)}
  trackWord(chosen,task.idx,!!successFirstTry);
- l.cursor++;l.errors=0;message="";
+ l.cursor++;l.errors=0;message="";phraseOrder=[];
  if(l.cursor>=deck(chosen,l.group).length){
   l.group++;l.studied=0;l.cursor=0;
   l.phase=l.group>=3?"sentence":"study";
@@ -315,6 +336,7 @@ function optionsFor(i,g){const range=groupRange(i,g);return range.map(x=>x.term[
 function rotateOptions(arr,seed){const shift=seed%arr.length;return arr.slice(shift).concat(arr.slice(0,shift))}
 function renderTaskBody(task){
  const current=levels[chosen].terms[task.idx],l=levelState(chosen),range=groupRange(chosen,l.group);
+ const extra=varietyBody(task,current,l,range);if(extra!==null)return extra;
  const distract=range.find(x=>x.idx!==task.idx)?.term[0]||"другое слово";
  const options=rotateOptions(optionsFor(chosen,l.group),l.cursor+chosen);
  let title="",question="",hint="",key="pick";
@@ -421,6 +443,17 @@ app.addEventListener("click",e=>{
   else{l.errors++;message="Пока не тот ответ. Подумай, какое понятие точнее. Ошибаться можно — монеты за этот вопрос начисляются только за первый правильный ответ.";save();viewLesson()}
   return
  }
+ if(kind==="practice"){
+ const task=deck(chosen,l.group)[l.cursor],term=levels[chosen].terms[task.idx],b=VARIETY[term[0]];
+ if(task.kind==="phrase"){
+  if(target.hasAttribute("data-token")){const n=Number(target.dataset.token);if(n>=0&&n<3&&!phraseOrder.includes(n))phraseOrder.push(n);viewLesson();return}
+  if(act==="phrase-reset"){phraseOrder=[];viewLesson();return}
+  if(act==="phrase-check"){if(phraseOrder.join(",")==="0,1,2")nextPractice(!l.errors);else{l.errors++;phraseOrder=[];message="Попробуй начать с действия или подлежащего с заглавной буквы.";save();viewLesson()}return}
+ }
+ if(task.kind==="fill"&&act==="fill-check"){
+  if(checkedWord(document.getElementById("recall")?.value,b[1]))nextPractice(!l.errors);else{l.errors++;message="Проверь смысл и форму слова в предложении.";save();viewLesson()}return
+ }
+ }
  if(act==="recall"&&kind==="practice"){
   const task=deck(chosen,l.group)[l.cursor];if(task.kind!=="recall")return;
   const answer=levels[chosen].terms[task.idx][0];
@@ -429,7 +462,7 @@ app.addEventListener("click",e=>{
   return
  }
  if(act==="hint"&&kind==="practice"){
-  const task=deck(chosen,l.group)[l.cursor];const answer=levels[chosen].terms[task.idx][0];
+  const task=deck(chosen,l.group)[l.cursor];const term=levels[chosen].terms[task.idx][0],answer=task.kind==="fill"?VARIETY[term][1]:term;
   l.errors++;message="Подсказка: первая буква «"+answer[0]+"», букв в названии: "+answer.length+".";
   save();viewLesson();return
  }
@@ -455,7 +488,7 @@ app.addEventListener("input",e=>{
  }
 });
 app.addEventListener("keydown",e=>{
- if(e.key==="Enter"&&e.target.id==="recall"){e.preventDefault();app.querySelector('[data-act="recall"]')?.click()}
+ if(e.key==="Enter"&&e.target.id==="recall"){e.preventDefault();(app.querySelector('[data-act="recall"]')||app.querySelector('[data-act="fill-check"]'))?.click()}
  if(e.key==="Enter"&&e.target.id==="sentence"){e.preventDefault();app.querySelector('[data-act="sentence"]')?.click()}
 });
 viewHome();
