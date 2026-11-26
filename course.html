@@ -71,6 +71,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #8ac5
 .speech-example p{margin:8px 0}.speech-example .actions{margin-top:12px}
 @media(max-width:600px){.speech-grid{grid-template-columns:1fr}}
 .mission{padding:20px;margin:20px 0;background:linear-gradient(120deg,#eff8eb,#eef3ff);border:1px solid #d6e5da;border-radius:20px}.mission h2{font-size:20px;margin:0}.mission p{font-size:13px;color:#526b60}.mission-track{height:12px;background:#d9e5db;border-radius:20px;overflow:hidden}.mission-track>div{height:100%;background:#318e60}.mission-meta{display:flex;justify-content:space-between;font-size:12px;font-weight:750;margin-top:9px}.achievement-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:15px}.achievement{padding:13px;border:1px solid #dce6de;background:white;border-radius:14px}.achievement.locked{opacity:.55}.achievement b,.achievement small{display:block}.achievement small{font-size:12px;color:#61766a;margin-top:5px}@media(max-width:650px){.achievement-grid{grid-template-columns:1fr}.mission{padding:16px}.level{gap:10px;padding:12px}.level .emoji{width:48px;min-width:48px;height:48px;font-size:24px}.level .status{white-space:normal;text-align:right}}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #237e53;outline-offset:3px}.week-card{background:white;border:1px solid #dce7dc;border-radius:20px;padding:20px;margin:18px 0}.week-card h2{font-size:20px;margin:0}.week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.week-day{min-width:0;text-align:center;background:#f3f5f3;border:1px solid #dce7dc;border-radius:10px;padding:8px 2px;color:#40584b}.week-day small,.week-day b{display:block;font-size:12px}.week-day b{font-size:16px;margin:5px 0}.week-done{background:#dff2e4;border-color:#83b895;color:#205b37}.week-day:last-child{outline:2px solid #527c63;outline-offset:1px}@media(max-width:420px){.week-card{padding:13px}.week-grid{gap:3px}.week-day small{font-size:10px}.week-day b{font-size:14px}}.shop-item button{min-height:44px;width:100%;white-space:normal}.shop-item button:disabled{opacity:1;color:#526257;background:#e9eee8;border-color:#d6dfd5}.theme-forest{background:#edf5ed;color:#203d2b}.theme-forest .hero{background:#d7edda}.theme-forest .primary{background:#286344;border-color:#286344}.theme-violet{background:#f4f0fa;color:#372d51}.theme-violet .hero{background:#e7ddfa}.theme-violet .primary{background:#65459a;border-color:#65459a}.shop button:focus-visible{outline:3px solid #365eaa;outline-offset:2px}
+.match-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:8px}.match-grid .choice{width:100%;font-size:14px;overflow-wrap:anywhere}.match-word[aria-pressed="true"]{outline:3px solid #47845c;outline-offset:-3px}.match-def:disabled{opacity:.7}@media(max-width:400px){.match-grid .choice{font-size:12px;padding:9px}}
 </style>
 </head>
 <body>
@@ -268,7 +269,11 @@ function advanceReview(success){const r=review,x=r.q[r.n],clean=success&&!r.erro
 const CONTEXTS={"Дефект":"На новой окраске обнаружили пузырь и пятно. Как называется такой недостаток?","Срок":"Мастер спрашивает, к какому дню закончат исправление. Что нужно уточнить?","Этап":"Сначала подготовка, потом окраска. Как называется одна такая часть большой работы?","Результат":"Поверхность покрасили, теперь проверяют, что получилось. Как называется итог работы?","Замечание":"На осмотре указали на неровность стены. Как назвать это указание?","Проверка":"Мастер осматривает стену после исправления. Как называется такое действие?","Объём":"Нужно узнать, сколько квадратных метров стены окрашено. Что измеряют?","Причина":"Трещина появилась снова. Нужно выяснить, из-за чего. Что ищем?","Исправление":"Мастер устранил царапину и снова покрасил участок. Что он выполнил?","Задача":"Работнику поручили к вечеру завершить окраску двери. Что ему поставили?","Фронт работ":"Маляры ждут, пока электрики освободят помещение. Что ещё не подготовлено?","Смежные работы":"Штукатуры ждут окончания сантехнического монтажа. Как называются связанные работы других бригад?","Приёмка":"Результат проверяют перед передачей заказчику. Как называется эта процедура?","План-факт":"За неделю планировали 200 м², а сделали 160 м². Как называется такое сравнение?","Участок":"Бригада работает только в одной части здания. Как назвать эту часть объекта?","Подрядчик":"Организация выполняет отделку по договору. Как назвать её роль?","Готовность":"Нужно понять, можно ли уже предъявить помещение для проверки. Что оцениваем?","Отклонение":"Обещали закончить в понедельник, сделали в среду. Как называется разница с планом?","Контроль качества":"Проверяем, соответствует ли подготовка стен требованиям. Как называется такая проверка?","Ответственность":"Нужно определить, кто отвечает за результат работы. Что закрепляем?"};
 const PRACTICE_VER=2;
 const VARIETY=Object.fromEntries([["Дефект","На потолке обнаружен ___.","дефект",["Обнаружен","дефект","на потолке"],"Недостаток самой работы, а не запись о нём."],["Срок","Нужно уточнить ___ сдачи.","срок",["Уточним","срок","сдачи"],"Дата окончания, а не часть работы."],["Этап","Первый ___ отделки завершён.","этап",["Завершён","первый","этап"],"Часть процесса, а не дата окончания."],["Результат","Оценим ___ окраски.","результат",["Оценим","результат","окраски"],"Полученный итог, а не действие по его оценке."],["Замечание","Мастер записал ___ по окраске.","замечание",["Зафиксируем","замечание","мастера"],"Указание на недостаток, а не сам итог работы."],["Проверка","После ремонта нужна ___.","проверка",["Назначим","повторную","проверку"],"Действие по оценке соответствия требованиям."],["Объём","Уточним ___ отделки в квадратных метрах.","объём",["Уточним","объём","отделки"],"Количество работы, а не объяснение проблемы."],["Причина","Нужно установить ___ задержки.","причину",["Установим","причину","задержки"],"То, из-за чего возникла проблема."],["Исправление","___ недостатка займёт день.","исправление",["Начнём","исправление","недостатка"],"Устранение недостатка, а не выяснение его происхождения."],["Задача","___ мастера — проверить стены.","задача",["Уточним","задачу","мастера"],"Порученный результат или действие."],["Фронт работ","Для маляров подготовлен ___.","фронт работ",["Подготовим","фронт работ","для маляров"],"Место и условия для начала конкретной работы."],["Смежные работы","Перед окраской завершены ___.","смежные работы",["Завершены","смежные работы","в помещении"],"Связанные работы других исполнителей."],["Приёмка","После завершения отделки назначена ___.","приёмка",["Назначим","приёмку","отделки"],"Проверка перед официальным принятием результата."],["План-факт","На совещании сверим ___ за неделю.","план-факт",["Сверим","план-факт","за неделю"],"Сопоставление запланированного и выполненного."],["Участок","Мастер осмотрел ___ фасада.","участок",["Осмотрим","участок","фасада"],"Часть объекта, а не исполнитель договора."],["Подрядчик","___ выполнил отделку по договору.","подрядчик",["Подрядчик","завершил","отделку"],"Исполнитель работ по договору."],["Готовность","Оценим ___ помещения к окраске.","готовность",["Оценим","готовность","помещения"],"Состояние перед следующим этапом, а не разница с планом."],["Отклонение","Зафиксировано ___ от графика.","отклонение",["Зафиксируем","отклонение","от графика"],"Разница между планом и фактом."],["Контроль качества","После подготовки проведём ___.","контроль качества",["Проведём","контроль качества","подготовки"],"Проверка соответствия требованиям."],["Ответственность","За мастером закреплена ___ за результат.","ответственность",["Закрепим","ответственность","за результат"],"Обязанность отвечать за результат."]].map(x=>[x[0],x.slice(1)]));
-let phraseOrder=[];
+let phraseOrder=[],matchPairs={},matchSelected=null;
+function shuffled(items,seed){const a=items.slice();let x=seed>>>0;for(let j=a.length-1;j>0;j--){x=(Math.imul(x,1664525)+1013904223)>>>0;const k=x%(j+1);[a[j],a[k]]=[a[k],a[j]]}return a}
+function taskSeed(l){return ((chosen+1)*100003+(l.group+1)*7919+(l.cursor+1)*997)>>>0}
+function clearMatch(){matchPairs={};matchSelected=null}
+function matchCorrect(range){return range.every(x=>matchPairs[x.idx]===x.idx)}
 function varietyKind(i,g,j,round){return i<2?(round===0?["contrast","match","fill","simple"][(j+g)%4]:["phrase","repair","fill","match"][(j+g)%4]):null}
 function varietyBody(task,current,l,range){
  const b=VARIETY[current[0]];if(!b)return null;
@@ -278,12 +283,12 @@ function varietyBody(task,current,l,range){
  const buttons=(opts,correct)=>rotateOptions(opts,l.cursor+chosen).map((o)=>'<button class="choice" data-choice="'+(o===correct?"yes":"no")+'">'+esc(o)+'</button>').join("");
  if(task.kind==="contrast")return head("Различай понятия",b[3])+buttons(range.map(x=>x.term[0]),current[0])+feedback;
  if(task.kind==="match"){
-  const a=current[0]+" — "+current[1]+" / "+other[0]+" — "+other[1],wrong=current[0]+" — "+other[1]+" / "+other[0]+" — "+current[1];
-  return head("Сопоставь две пары","В каком варианте оба слова объяснены правильно?")+buttons([a,wrong],a)+feedback
+  const defs=shuffled(range,taskSeed(l));const words=shuffled(range,taskSeed(l)+41);
+  return head("Соедини слова и значения","Выбери слово, затем его значение.")+'<div class="match-grid"><div>'+words.map(x=>'<button class="choice match-word" data-match-word="'+x.idx+'" aria-pressed="'+(matchSelected===x.idx)+'">'+esc(x.term[0])+(Object.hasOwn(matchPairs,x.idx)?' · ✓':'')+'</button>').join("")+'</div><div>'+defs.map((x,n)=>'<button class="choice match-def" data-match-def="'+x.idx+'" '+(matchSelected===null?'disabled':'')+'>'+String.fromCharCode(1040+n)+'. '+esc(x.term[1])+'</button>').join("")+'</div></div><div class="mini" aria-live="polite">'+words.map(x=>{const d=defs.findIndex(y=>y.idx===matchPairs[x.idx]);return esc(x.term[0])+': '+(d<0?'—':String.fromCharCode(1040+d))}).join(' · ')+'</div><div class="actions"><button class="primary" data-act="match-check" '+(Object.keys(matchPairs).length!==range.length?'disabled':'')+'>Проверить пары</button><button class="secondary" data-act="match-reset">Сбросить пары</button></div>'+feedback
  }
  if(task.kind==="fill")return head("Вставь слово в новую фразу",b[0])+'<p class="mini">Напиши термин в подходящей форме.</p><input class="field" id="recall" autocomplete="off" placeholder="Твой ответ"><div class="actions"><button class="primary" data-act="fill-check">Проверить</button><button class="secondary" data-act="hint">Подсказка</button></div>'+feedback;
  if(task.kind==="phrase"){
-  const tokens=b[2],order=[2,0,1];
+  const tokens=b[2];let order=shuffled([0,1,2],taskSeed(l));if(order.join(",")==="0,1,2")order=[1,2,0];
   return head("Собери короткую фразу","Начни с первого слова предложения.")+'<div class="example" aria-live="polite">'+esc(phraseOrder.map(n=>tokens[n]).join(" ")||"Выбери слова ниже")+'</div><div class="actions">'+order.map(n=>'<button class="secondary" data-token="'+n+'" '+(phraseOrder.includes(n)?"disabled":"")+'>'+esc(tokens[n])+'</button>').join("")+'</div><div class="actions"><button class="primary" data-act="phrase-check" '+(phraseOrder.length!==3?"disabled":"")+'>Проверить</button><button class="secondary" data-act="phrase-reset">Очистить</button></div>'+feedback
  }
  return null
@@ -329,7 +334,7 @@ function viewHome(){
 function openLevel(i){
  if(!unlocked(i))return;
  if(chosen!==null)window.TrainerVoice.reset();
- chosen=i;message="";transcript="";readAnalysis=null;phraseOrder=[];
+ chosen=i;message="";transcript="";readAnalysis=null;phraseOrder=[];clearMatch();
  if(state.done[i]){
   state.learningV2[i]={group:0,studied:0,phase:"study",cursor:0,errors:0};
   save();
@@ -347,7 +352,7 @@ function nextPractice(successFirstTry){
  const l=levelState(chosen),task=deck(chosen,l.group)[l.cursor];
  if(successFirstTry){reward("v2:l"+chosen+":g"+l.group+":task"+l.cursor,task.kind==="recall"?3:2);if(task.kind==="recall"||task.kind==="fill")creditRecall(chosen,task.idx)}
  trackWord(chosen,task.idx,!!successFirstTry,task.kind,"lesson");
- l.cursor++;l.errors=0;message="";phraseOrder=[];
+ l.cursor++;l.errors=0;message="";phraseOrder=[];clearMatch();
  if(l.cursor>=deck(chosen,l.group).length){
   l.group++;l.studied=0;l.cursor=0;
   l.phase=l.group>=3?"sentence":"study";
@@ -468,6 +473,13 @@ app.addEventListener("click",e=>{
  }
  if(kind==="practice"){
  const task=deck(chosen,l.group)[l.cursor],term=levels[chosen].terms[task.idx],b=VARIETY[term[0]];
+ if(task.kind==="match"){
+  const range=groupRange(chosen,l.group),valid=n=>range.some(x=>x.idx===n);
+  if(target.hasAttribute("data-match-word")){const n=Number(target.dataset.matchWord);if(valid(n))matchSelected=n;viewLesson();return}
+  if(target.hasAttribute("data-match-def")){const n=Number(target.dataset.matchDef);if(valid(n)&&valid(matchSelected)){for(const k of Object.keys(matchPairs))if(matchPairs[k]===n)delete matchPairs[k];matchPairs[matchSelected]=n;matchSelected=null}viewLesson();return}
+  if(act==="match-reset"){clearMatch();viewLesson();return}
+  if(act==="match-check"){if(Object.keys(matchPairs).length!==range.length)return;if(matchCorrect(range))nextPractice(!l.errors);else{l.errors++;message="Не все пары верны. Пересмотри значения и исправь соответствия.";save();viewLesson()}return}
+ }
  if(task.kind==="phrase"){
   if(target.hasAttribute("data-token")){const n=Number(target.dataset.token);if(n>=0&&n<3&&!phraseOrder.includes(n))phraseOrder.push(n);viewLesson();return}
   if(act==="phrase-reset"){phraseOrder=[];viewLesson();return}
