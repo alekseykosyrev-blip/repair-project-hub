@@ -317,7 +317,7 @@ function levelState(i){
 function groupRange(i,g){
  const start=[0,3,6][g]??0;return levels[i].terms.slice(start,g===2?10:start+3).map((t,n)=>({term:t,idx:start+n}))
 }
-function deck(i,g){
+function legacyDeck(i,g){
  const range=groupRange(i,g),n=range.length,arr=[];
  const kinds1=["pick","context","simple","context"],kinds2=["repair","simple","pick","repair"];
  // Two mixed rounds before active recall; no word is tested immediately after being shown.
@@ -327,6 +327,25 @@ function deck(i,g){
  const order3=n===3?[1,0,2]:[3,1,2,0];
  for(const j of order3)arr.push({idx:range[j].idx,kind:"recall"});
  return arr
+}
+function mixedDeck(i,g,seed){
+ const base=legacyDeck(i,g),n=groupRange(i,g).length;
+ const out=shuffled(base.slice(0,n),seed+19),pool=shuffled(base.slice(n),seed);
+ function search(left){
+  if(!left.length)return out.slice(n,2*n).some(x=>x.kind==="recall") && out.slice(2*n).some(x=>x.kind!=="recall");
+  for(let k=0;k<left.length;k++){
+   const t=left[k],p=out.length;
+   if(out[p-1]?.idx===t.idx)continue;
+   if(t.kind==="recall" && out[p-1]?.kind==="match")continue;
+   out.push(t);if(search(left.filter((_,j)=>j!==k)))return true;out.pop();
+  }
+  return false
+ }
+ return search(pool)?out:base
+}
+function deck(i,g){
+ const seed=state.learningV2?.[i]?.mixedSeeds?.[g];
+ return i<2 && Number.isInteger(seed)?mixedDeck(i,g,seed):legacyDeck(i,g)
 }
 function stage(i){const p=levelState(i);return p.group>=3?(p.phase==="reading"?"reading":"sentence"):p.phase}
 function stepLabel(i){const l=levelState(i);if(l.group>=3)return l.phase==="reading"?"Чтение вслух":"Собираем предложение";const range=groupRange(i,l.group);if(l.phase==="study")return "Изучение: "+(l.studied+1)+" из "+range.length+" · набор "+(l.group+1)+"/3";return "Практика: "+(l.cursor+1)+" из "+deck(i,l.group).length+" · набор "+(l.group+1)+"/3"}
@@ -355,7 +374,7 @@ function nextStudy(){
  const l=levelState(chosen),count=groupRange(chosen,l.group).length;
  if(l.phase!=="study")return;
  l.studied++;
- if(l.studied>=count){l.phase="practice";l.cursor=0}
+ if(l.studied>=count){l.phase="practice";l.cursor=0;if(chosen<2){l.mixedSeeds??={};l.mixedSeeds[l.group]??=Math.floor(Math.random()*4294967296)}}
  message="";save();viewLesson()
 }
 function nextPractice(successFirstTry){
